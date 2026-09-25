@@ -56,5 +56,24 @@
     "supertest": "7.0.0",
     "typescript": "5.7.3",
     "vitest": "2.1.9"
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BROCKUGANDA/majortom.git"
+  },
+  "homepage": "https://github.com/BROCKUGANDA/majortom#readme",
+  "bugs": {
+    "url": "https://github.com/BROCKUGANDA/majortom/issues"
+  },
+  "keywords": [
+    "dependency-migration",
+    "codemod",
+    "agent",
+    "automation",
+    "static-analysis",
+    "express",
+    "major-version-upgrade",
+    "developer-tools"
+  ]
 }
