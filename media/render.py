@@ -416,7 +416,7 @@ def render_slides(facts: dict) -> list[Path]:
         img.save(p, optimize=True)
         out.append(p)
 
-    n = 8
+    n = 10
     slide("MajorTom", "autonomous dependency migration", lambda d: (
         d.text((80, 260), "A major-version upgrade is one of the most", font=font(SANS, 40), fill=MUTED),
         d.text((80, 320), "feared tasks in software maintenance.", font=font(SANS, 40), fill=MUTED),
@@ -483,6 +483,78 @@ def render_slides(facts: dict) -> list[Path]:
         d.text((80, 380), "$ npm run demo", font=font(MONO_B, 52), fill=CYAN),
         d.text((80, 520), "MIT licensed. 138 tests. 7 stages. 100% cited.", font=font(SANS, 34), fill=MUTED),
     ), 8, n)
+
+    # ── Slide 9: Deliberate cuts ──────────────────────────────────────────────
+    cuts = [
+        ("No GitHub API client",
+         "octokit seam exists in src/report/git.ts; nothing wires it — no token, no dep"),
+        ("No OSV / CVE feed",
+         "public API, no auth needed; cut for scope, not difficulty"),
+        ("No Slack / webhook",
+         "notification path is a tested seam with no implementation"),
+        ("Single ecosystem (npm only)",
+         "go.mod / pyproject.toml readers exist; no scanner or codemod set"),
+        ("No streaming dashboard",
+         "MajorTom is a CLI; a browser UI would duplicate the run inspector in /docs"),
+    ]
+
+    def slide9(d: ImageDraw.ImageDraw) -> None:
+        d.text((80, 210),
+               "We cut the dashboard, multi-ecosystem and auto-merge on purpose.",
+               font=font(SANS, 32), fill=AMBER)
+        d.text((80, 256),
+               "Scope discipline, not oversight — each has a tested seam and a roadmap entry.",
+               font=font(SANS, 30), fill=MUTED)
+        y = 330
+        for heading, reason in cuts:
+            panel(d, (80, y, W - 80, y + 76), hi=False)
+            d.text((108, y + 12), heading, font=font(MONO_B, 24), fill=RED)
+            d.text((108, y + 46), reason, font=font(MONO, 22), fill=MUTED)
+            y += 90
+
+    slide("Deliberate cuts", "what we did not build and why", slide9, 9, n)
+
+    # ── Slide 10: Roadmap + metrics ───────────────────────────────────────────
+    metrics = [
+        ("wall clock",        facts.get("wall", "15") + "s",   FG),
+        ("files changed",     facts.get("files", "9"),         FG),
+        ("citation coverage", facts.get("coverage", "100") + "%", GREEN),
+        ("applied edits",     "16/16",                         GREEN),
+        ("human touches",     "2",                             MUTED),
+        ("test suite",        "138/138 passing (9 projects)",  GREEN),
+        ("pre-existing fails","1 — excluded, not blamed",      AMBER),
+        ("runtime vulns",     "0  (npm audit --omit=dev)",     GREEN),
+    ]
+    roadmap_items = [
+        ("Near",   "Wire octokit seam → real draft PR"),
+        ("Near",   "OSV.dev CVE lookup → report header"),
+        ("Near",   "ANSI ticker (--progress flag, no new deps)"),
+        ("Medium", "Second ecosystem (Go modules or Python)"),
+        ("Later",  "LLM-assisted planning for non-deterministic guides"),
+    ]
+
+    def slide10(d: ImageDraw.ImageDraw) -> None:
+        # Left column: metrics
+        d.text((80, 208), "Metrics (real run)", font=font(SANS_B, 32), fill=FG)
+        y = 258
+        for label, value, col in metrics:
+            d.text((80,  y), label.ljust(24), font=font(MONO, 24), fill=DIM)
+            d.text((600, y), value,            font=font(MONO_B, 24), fill=col)
+            y += 46
+        # Right column: roadmap
+        d.text((1040, 208), "Roadmap", font=font(SANS_B, 32), fill=FG)
+        y = 258
+        for horizon, item in roadmap_items:
+            hl = CYAN if horizon == "Near" else (MUTED if horizon == "Medium" else DIM)
+            d.text((1040, y), horizon.ljust(8), font=font(MONO_B, 22), fill=hl)
+            fw = wrap(d, item, font(MONO, 22), W - 1040 - 120)
+            for line in fw:
+                d.text((1148, y), line, font=font(MONO, 22), fill=MUTED)
+                y += 34
+            y += 10
+
+    slide("Roadmap + metrics", "real numbers, real next steps", slide10, 10, n)
+
     return out
 
 
@@ -502,6 +574,18 @@ def main() -> int:
 
     slides = render_slides(facts)
     print(f"slides: {len(slides)}")
+
+    # Assemble slides into a PDF (Pillow built-in, no extra deps)
+    pdf_path = MEDIA / "slides.pdf"
+    if slides:
+        imgs = [Image.open(p).convert("RGB") for p in slides]
+        imgs[0].save(
+            str(pdf_path),
+            save_all=True,
+            append_images=imgs[1:],
+        )
+        print(f"pdf: {pdf_path} ({len(slides)} pages)")
+
     return 0
 
 

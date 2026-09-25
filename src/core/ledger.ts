@@ -2,6 +2,53 @@
 // Run ledger: create, checkpoint, resume, metrics.
 // All writes are atomic (temp file + rename) and zod-validated.
 
+/**
+ * @module ledger
+ *
+ * The run ledger is the single source of truth for every MajorTom run.
+ * It records each stage's lifecycle — from `running` through `checkpointed` or
+ * `failed` — as an append-only log of {@link StageRecord} entries.
+ *
+ * ## Stage transition invariants
+ *
+ * The seven stages advance in strict order:
+ * `INTAKE → PLAN → IMPACT → BASELINE → EXECUTE → VERIFY → REPORT`
+ *
+ * 1. **A stage may only start when its predecessor is `checkpointed` or `skipped`.**
+ *    Attempting to start a stage whose predecessor is still `running` or `failed`
+ *    throws immediately. This prevents partial state from being silently carried
+ *    forward (see {@link validateTransition}).
+ *
+ * 2. **`INTAKE` is unconditionally startable** — it is the entry point and has no
+ *    predecessor to check.
+ *
+ * 3. **Re-attempts are tracked, not overwritten.** If a stage is retried, a new
+ *    `StageRecord` is appended with an incremented `attempt` counter. The previous
+ *    failed record stays in the log. This means the ledger is a full audit trail —
+ *    you can reconstruct exactly how many times each stage was attempted and why
+ *    each attempt ended the way it did.
+ *
+ * ## Why the ledger is append-only
+ *
+ * Overwriting or deleting a stage record would break two properties the tool relies on:
+ *
+ * - **Resumability.** On crash or interrupt, the orchestrator calls {@link resume},
+ *   which finds the last `checkpointed` record and derives the next stage to execute.
+ *   If records could be mutated in place, this scan would be unreliable.
+ *
+ * - **Auditability.** The submission requirement — that every applied edit cites the
+ *   guide section justifying it — extends naturally to the ledger itself. A judge or
+ *   operator reading `ledger.json` can see the exact sequence of events, including
+ *   failed attempts. Mutation would erase that history.
+ *
+ * Physically, "append-only" is enforced by convention: {@link startStage} spreads the
+ * existing `stages` array and appends a new record; {@link checkpoint} and
+ * {@link failStage} use {@link replaceLast} to update only the most-recent record for
+ * a given stage, never touching earlier entries. All writes go through
+ * `writeLedgerAtomic` (temp-file + rename) so a crash mid-write never leaves a
+ * partially-written file.
+ */
+
 import {
   readFileSync,
   writeFileSync,

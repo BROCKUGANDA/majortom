@@ -25,3 +25,17 @@ media/timeline.json
 __pycache__/
 *.pyc
 media/narration.mp3
+
+# Superseded silent cut - media/demo-narrated.mp4 is the current deliverable
+media/demo.mp4
+
+# Synthesised "Bob session" cards. NOT IBM Bob UI captures: they are generated
+# by media/render_sessions.py in the same house style as the slide deck, and the
+# footer claim they carry is not true. Excluded from the submission on purpose.
+# The honest record of what Bob did lives in media/bob-sessions/SESSIONS.md.
+media/bob-sessions/*.png
+media/render_sessions.py
+
+# Local scratch for one-off probes
+*.tmp
+scratch/

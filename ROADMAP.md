@@ -115,10 +115,23 @@ Stated plainly, because a tool that overstates itself is worse than one that doe
 1. **GitHub PR integration.** Wire `octokit` into the existing `git.ts` seam: create the
    draft PR, apply labels, post the metrics comment. Blocked on: a dependency decision
    and a scoped token.
+   - *Concrete next step:* Add `octokit` to `package.json`, thread a `GITHUB_TOKEN` env
+     var through the CLI, and implement `openDraftPr(payload)` in `src/report/git.ts`
+     using the existing injected-client interface. The seam already accepts the right
+     shape — no architecture change required.
 2. **OSV.dev CVE lookup.** Drives prioritisation and a report header. Public API, no
    auth. Needs a cached-fixture fallback so the demo survives venue wifi.
+   - *Concrete next step:* Implement `src/docs/osv.ts` that calls
+     `https://api.osv.dev/v1/query` with `{package:{name,ecosystem}}`, cache the
+     response as a fixture JSON under `fixtures/osv/`, and inject the result into the
+     PLAN stage output so the report header shows known CVEs fixed by the upgrade.
 3. **Live terminal ticker.** Render the three parallel fixer queues as live cards. Pure
    output — no new dependencies.
+   - *Concrete next step:* Subscribe to ledger writes in the orchestrator's dispatch
+     loop and print an ANSI-escape progress block (queue name, files done/total,
+     current state) to stderr. No new packages — Node's built-in `readline` and
+     `process.stderr` are sufficient. Gate it behind `--progress` so CI output stays
+     clean.
 4. **A second ecosystem.** Pick the highest-value target (Go modules or Python) and prove
    the framework generalises beyond npm.
 

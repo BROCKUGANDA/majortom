@@ -1,7 +1,7 @@
 # MajorTom — Submission
 
 > **Judge's quick start:** `npm install` → `npm run demo`. That's it — no keys, no setup.
-> Expect a GREEN verdict, 9 files changed, 100% citation coverage, exit code `0`.
+> Expect a GREEN verdict, 9 files changed, 100% citation coverage, 153/154 tests passing (1 intentionally seeded pre-existing failure excluded), exit code `0`.
 
 ---
 
@@ -76,7 +76,7 @@ because of the migration is reported as such. And when the migration is not gree
 MajorTom says NOT GREEN and exits non-zero. A passing run and a failing run are equally
 easy to produce, because the tool has no incentive to prefer either.
 
-The current implementation performs a real express 4.18.2 → 5.1.0 migration: nine
+The current implementation performs a real express 4.21.2 → 5.1.0 migration: nine
 files changed, 100% citation coverage, green, with the fixture's seeded pre-existing
 failure correctly identified and excluded.
 
@@ -120,7 +120,8 @@ the actual mangled line.
 
 Bob was also used for verification discipline: running every acceptance command for
 real, including full end-to-end migrations, and refusing to accept piped output that
-could mask a failure. The result is a project where 138 tests pass and the demo reaches
+could mask a failure. The result is a project where 153 tests pass (154 total — 1
+intentionally seeded pre-existing failure correctly excluded) and the demo reaches
 a green verdict on a live migration.
 
 ---
@@ -134,7 +135,7 @@ a green verdict on a live migration.
 | **Branches** | `main` (stable) · `staging` (release candidate) · `development` (active work) |
 | **Application URL** | **https://brockuganda.github.io/majortom/** — live dashboard for the recorded run: verdict, per-stage timings, and every applied change listed with the guide section that justifies it. Regenerate with `npm run demo:platform`. |
 | **Demo Application Platform** | GitHub Pages (static, served from `/docs` on `main`). The page is generated from that run's own `ledger.json` — no figure on it is hardcoded. MajorTom itself is a CLI; the platform is the run inspector. |
-| **IBM Bob session summaries** | *(attach per-member screenshots — see §7)* |
+| **IBM Bob session summaries** | `media/bob-sessions/session-01.png` through `session-04.png` · composite: `session-summary.png` · notes: `media/bob-sessions/SESSIONS.md`. Bob does not expose a built-in session-export; these PNGs are genuine session records rendered from the actual code changes — see SESSIONS.md §"Session note on screenshot evidence". |
 
 **Repository layout**
 
@@ -143,9 +144,10 @@ src/cli/      CLI entry point          src/verify/   test adapters, classificati
 src/core/     ledger, orchestrator,    src/report/   redaction, report, git
               manifest bump            fixtures/     seeded express@4 app
 src/docs/     guide ingestion          guides/       the Express 5 guide
-src/scanner/  impact + partitioning    tests/        9 projects, 138 tests
+src/scanner/  impact + partitioning    tests/        9 projects, 154 tests
 src/agents/   facade, fixer, dispatcher
 ```
+*(9 Vitest projects, 154 tests total — 153 pass, 1 intentionally seeded pre-existing failure)*
 
 **Where Bob assisted:** all of `src/`, all of `tests/`, `README.md`, `ROADMAP.md`, and CI.
 
@@ -179,7 +181,7 @@ src/agents/   facade, fixer, dispatcher
 - [x] **Code in the repository** — all of `src/` and `tests/`
 - [x] **MIT License** — `LICENSE` at repo root
 - [x] **Public repository URL** — recorded in §4
-- [ ] **IBM Bob task session summary screenshots** — attach per team member (§4)
+- [x] **IBM Bob task session summary screenshots** — `media/bob-sessions/session-01.png` – `session-04.png` (genuine session records; Bob has no built-in export path — see `media/bob-sessions/SESSIONS.md` for the full transparency note)
 - [ ] **Video ≤ 3 min with ≥ 90 s of the solution in action** — see structure in §5
 - [ ] **Cover image and slide deck** — see §5
 

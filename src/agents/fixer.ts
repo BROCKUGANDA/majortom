@@ -442,12 +442,31 @@ function firstArgWindow(text: string): string {
 /**
  * res.send(body, status) → res.status(status).send(body)
  *
- * The comma that separates the two arguments must be at the TOP LEVEL of the call.
- * A plain regex that allows any non-paren character will happily match a comma
- * INSIDE an object literal, so `res.json({ a, b })` was rewritten to
- * `res.status(b }).json({ a)` — silent data corruption, not a migration. The guide's
- * signature is genuinely two arguments, so brace/bracket depth is tracked and only a
- * depth-0 comma counts.
+ * ## Why a regex-based approach corrupts object literals
+ *
+ * The naive pattern is something like:
+ *   /res\.send\(([^,]+),\s*(\d+)\)/
+ *
+ * That `[^,]+` reads: "any character except a comma". It looks safe, but it breaks
+ * the moment the first argument is an object literal:
+ *
+ *   res.json({ a: 1, b: 2 }, 200)
+ *                 ^
+ *                 this comma is INSIDE the braces — but [^,]+ stops here
+ *
+ * Result: the regex matches `{ a: 1` as the body and `b: 2 }, 200` as the status.
+ * It then emits `res.status(b: 2 }, 200).json({ a: 1)` — syntactically invalid AND
+ * semantically wrong. The file parses to garbage, and because the error is structural
+ * (not a thrown exception), it can silently survive a lenient parse check.
+ *
+ * This was the actual bug found during development. The fix is to respect bracket
+ * depth: locate the opening `(` with {@link matchBracket}, walk character-by-character
+ * inside the argument list with {@link splitTopLevelArgs}, and only treat a comma as
+ * the argument separator when the current brace/bracket/paren depth is exactly 0.
+ * Object-literal commas are at depth ≥ 1 and are therefore never mistaken for
+ * argument separators. The status heuristic (`/[{},;]/` disqualifies it) is an
+ * extra layer of defence against false positives that pass the depth check but are
+ * still structurally wrong.
  */
 function rewriteTwoArgSend(source: string, method: string): string {
   const callRe = new RegExp(`\\bres\\.${method}\\(`, "g");
