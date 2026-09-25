@@ -47,16 +47,16 @@ describe("impactScan — breakage coverage", () => {
     const seededRefs = new Set(breakages.entries.map((b) => b.planItemRef));
 
     for (const ref of seededRefs) {
-      // EX-NO-MATCH is deliberately unmatched
-      if (ref === "EX-NO-MATCH") continue;
+      // EX-99 is deliberately unmatched
+      if (ref === "EX-99") continue;
       expect(matchedItems.has(ref), `Plan item ${ref} should have matches`).toBe(true);
     }
   });
 
-  it("EX-NO-MATCH plan item with zero call sites lands in unmatchedItemIds", async () => {
+  it("EX-99 plan item with zero call sites lands in unmatchedItemIds", async () => {
     const plan = loadCannedPlan();
     const result = await impactScan(FIXTURE_ROOT, plan.items);
-    expect(result.unmatchedItemIds).toContain("EX-NO-MATCH");
+    expect(result.unmatchedItemIds).toContain("EX-99");
   });
 });
 

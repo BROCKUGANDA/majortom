@@ -1,7 +1,0 @@
-// tests/verify/verify.test.ts
-// Phase 6 placeholder — replaced when the verification phase is built.
-import { describe, it } from "vitest";
-
-describe("verify", () => {
-  it.todo("not implemented in this phase");
-});
