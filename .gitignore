@@ -16,3 +16,7 @@ npm-debug.log*
 
 # stray tool temp files
 .hermes-tmp.*
+
+# Generated demo media (regenerate with: python media/render.py)
+media/frames/
+media/captures/
