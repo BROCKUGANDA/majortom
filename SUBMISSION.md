@@ -132,7 +132,8 @@ a green verdict on a live migration.
 | **Public code repository** | **https://github.com/BROCKUGANDA/majortom** |
 | **MIT License** | MIT — see [`LICENSE`](./LICENSE) |
 | **Branches** | `main` (stable) · `staging` (release candidate) · `development` (active work) |
-| **Application URL** | *(none — MajorTom is a CLI, not a hosted service. This is deliberate; see ROADMAP.md §2)* |
+| **Application URL** | **https://brockuganda.github.io/majortom/** — live dashboard for the recorded run: verdict, per-stage timings, and every applied change listed with the guide section that justifies it. Regenerate with `npm run demo:platform`. |
+| **Demo Application Platform** | GitHub Pages (static, served from `/docs` on `main`). The page is generated from that run's own `ledger.json` — no figure on it is hardcoded. MajorTom itself is a CLI; the platform is the run inspector. |
 | **IBM Bob session summaries** | *(attach per-member screenshots — see §7)* |
 
 **Repository layout**

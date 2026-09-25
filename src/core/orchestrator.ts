@@ -20,6 +20,8 @@ import {
   checkpoint,
   failStage,
   artifactPath,
+  updateMetrics,
+  completeRun,
 } from "./ledger.js";
 import { MajorTomError } from "./errors.js";
 import { bumpManifest, installDependencies } from "./manifest.js";
@@ -443,6 +445,25 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
     citationCoverage: coverage.ratio,
   });
   stages.push({ stage: "REPORT", state: "checkpointed" });
+
+  // Persist the run's real measurements onto the ledger before closing it. The
+  // report already computes these; without this write the ledger ships every
+  // metric as null, which makes metricsFromLedger() useless to any consumer
+  // (dashboard, resume, regression comparison).
+  const passingCount = (r: { results: Array<{ status: string }> }): number =>
+    r.results.filter((t) => t.status === "pass").length;
+
+  updateMetrics(cfg.repoRoot, runId, {
+    wallClockMs: Date.now() - startedAt,
+    citationCoverage: coverage.ratio,
+    filesChanged: changedFiles.length,
+    verifyIterations,
+    testDelta: {
+      before: passingCount(baseline),
+      after: passingCount(finalPost),
+    },
+  });
+  completeRun(cfg.repoRoot, runId);
 
   ledger = readLedger(cfg.repoRoot, runId);
   return {

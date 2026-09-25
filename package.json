@@ -27,7 +27,8 @@
     "e2e:test": "npx vitest run tests/e2e",
     "majortom": "node dist/cli/index.js",
     "demo": "npm run build && node dist/demo.js",
-    "demo:dry": "npm run build && node dist/demo.js --dry-run"
+    "demo:dry": "npm run build && node dist/demo.js --dry-run",
+    "demo:platform": "node scripts/build-platform.mjs"
   },
   "dependencies": {
     "fast-glob": "3.3.3",
