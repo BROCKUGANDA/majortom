@@ -156,6 +156,20 @@ guides/        the Express 5 migration guide used as input
 
 Node.js ≥ 20. No database, no API keys, no network access required to run the demo.
 
+### Dependencies
+
+The **runtime** dependency list is deliberately short — `fast-glob`, `pdf-parse`,
+`ts-morph`, `ulid`, `zod`. Everything else is a devDependency for the test toolchain or
+for the fixture app.
+
+```bash
+npm audit --omit=dev   # audits only what ships
+```
+
+The remaining `qs` / `body-parser` advisories come from `express@4` and `supertest`,
+which are **devDependencies used by the test fixture** — they are not part of the
+shipped agent. They disappear for any consumer who installs the published package.
+
 ---
 
 ## Roadmap

@@ -30,13 +30,8 @@
     "demo:dry": "npm run build && node dist/demo.js --dry-run"
   },
   "dependencies": {
-    "@clack/prompts": "0.9.1",
-    "@octokit/rest": "20.1.1",
-    "commander": "12.1.0",
-    "execa": "9.5.2",
     "fast-glob": "3.3.3",
     "pdf-parse": "1.1.1",
-    "simple-git": "3.27.0",
     "ts-morph": "23.0.0",
     "ulid": "2.3.0",
     "zod": "3.24.2"
