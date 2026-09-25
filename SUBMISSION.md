@@ -129,7 +129,9 @@ a green verdict on a live migration.
 
 | Field | Value |
 |---|---|
-| **Public code repository** | *(fill in your public GitHub/GitLab URL before submitting)* |
+| **Public code repository** | **https://github.com/BROCKUGANDA/majortom** |
+| **MIT License** | MIT — see [`LICENSE`](./LICENSE) |
+| **Branches** | `main` (stable) · `staging` (release candidate) · `development` (active work) |
 | **Application URL** | *(none — MajorTom is a CLI, not a hosted service. This is deliberate; see ROADMAP.md §2)* |
 | **IBM Bob session summaries** | *(attach per-member screenshots — see §7)* |
 
@@ -174,9 +176,11 @@ src/agents/   facade, fixer, dispatcher
 - [x] **Problem & Solution Statement** — both complete, each under 500 words (§1, §2)
 - [x] **IBM Bob Usage Statement** — under 500 words (§3)
 - [x] **Code in the repository** — all of `src/` and `tests/`
+- [x] **MIT License** — `LICENSE` at repo root
+- [x] **Public repository URL** — recorded in §4
 - [ ] **IBM Bob task session summary screenshots** — attach per team member (§4)
-- [ ] **Repository publicly accessible** — set public, then paste the URL in §4
 - [ ] **Video ≤ 3 min with ≥ 90 s of the solution in action** — see structure in §5
+- [ ] **Cover image and slide deck** — see §5
 
 ---
 
