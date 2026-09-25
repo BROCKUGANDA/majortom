@@ -10,7 +10,10 @@
 // The orchestrator is the ONLY component allowed to invoke the package manager and the
 // test runner (I9). Fixer subagents receive a filesystem facade and nothing else.
 
-import { createRun, readLedger, startStage, checkpoint, failStage } from "./ledger.js";
+import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "fs";
+import { dirname, join } from "path";
+import { execFileSync } from "child_process";
+import { createRun, readLedger, startStage, checkpoint, failStage, artifactPath } from "./ledger.js";
 import { MajorTomError } from "./errors.js";
 import { ingestGuide } from "../docs/ingest.js";
 import { readGuide } from "../docs/docreader.js";
@@ -72,8 +75,6 @@ export interface RunResult {
 }
 
 function listFiles(dir: string, skip: Set<string> = new Set(["node_modules", ".git", ".majortom"])): string[] {
-  const { readdirSync, statSync } = require("fs") as typeof import("fs");
-  const { join } = require("path") as typeof import("path");
   const out: string[] = [];
   const walk = (d: string, prefix: string) => {
     for (const entry of readdirSync(d)) {
@@ -89,7 +90,6 @@ function listFiles(dir: string, skip: Set<string> = new Set(["node_modules", ".g
 }
 
 function gitHead(repoRoot: string): string {
-  const { execFileSync } = require("child_process") as typeof import("child_process");
   try {
     return execFileSync("git", ["rev-parse", "HEAD"], {
       cwd: repoRoot,
@@ -137,10 +137,6 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
     },
     idempotencyKeyValue,
   });
-  void idempotencyKeyValue;
-
-  let ledger = readLedger(cfg.repoRoot, runId);
-  stages.push({ stage: "INTAKE", state: "checkpointed" });
 
   const artifactFor = {
     INTAKE: "intake.json",
@@ -151,6 +147,20 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
     VERIFY: "verify.json",
     REPORT: "report.md",
   } as const;
+
+  // INTAKE is a real stage in the ledger, not just a local marker: §3.2 requires a
+  // stage record per stage, and startStage() enforces that PLAN cannot begin until
+  // INTAKE is checkpointed.
+  startStage(cfg.repoRoot, runId, "INTAKE");
+  checkpoint(cfg.repoRoot, runId, "INTAKE", artifactFor.INTAKE, {
+    repoRoot: cfg.repoRoot,
+    baseCommit,
+    workBranch: runBranchName(runId),
+    dryRun: cfg.dryRun,
+  });
+  stages.push({ stage: "INTAKE", state: "checkpointed" });
+
+  let ledger = readLedger(cfg.repoRoot, runId);
 
   const overrun = (): boolean => Date.now() > deadline;
 
@@ -329,14 +339,22 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
     unmatchedItemIds: scan.unmatchedItemIds,
   });
 
-  const { artifactPath } = require("./ledger.js") as typeof import("./ledger.js");
-  const { writeFileSync, mkdirSync } = require("fs") as typeof import("fs");
-  const { dirname } = require("path") as typeof import("path");
+  // Write the markdown report FIRST, then checkpoint with a JSON payload that does
+  // NOT claim ownership of report.md. checkpoint() writes JSON.stringify(data) to
+  // the artifact path, so pointing it at report.md would overwrite the report with a
+  // JSON summary. §3.2 wants report.md to BE the report.
   const rp = artifactPath(cfg.repoRoot, runId, artifactFor.REPORT);
   mkdirSync(dirname(rp), { recursive: true });
   writeFileSync(rp, report, "utf8");
 
-  checkpoint(cfg.repoRoot, runId, "REPORT", artifactFor.REPORT, { bytes: report.length, green });
+  // Checkpoint the stage against a JSON sidecar, and record the report's own path in
+  // the ledger so the artifact reference stays accurate.
+  checkpoint(cfg.repoRoot, runId, "REPORT", "report-meta.json", {
+    reportArtifact: artifactFor.REPORT,
+    bytes: report.length,
+    green,
+    citationCoverage: coverage.ratio,
+  });
   stages.push({ stage: "REPORT", state: "checkpointed" });
 
   ledger = readLedger(cfg.repoRoot, runId);
@@ -358,11 +376,10 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
 }
 
 function snapshotContents(repoRoot: string): Map<string, string> {
-  const { readFileSync } = require("fs") as typeof import("fs");
   const out = new Map<string, string>();
   for (const rel of listFiles(repoRoot)) {
     try {
-      out.set(rel, readFileSync(`${repoRoot}/${rel}`, "utf8"));
+      out.set(rel, readFileSync(join(repoRoot, rel), "utf8"));
     } catch {
       /* binary or unreadable — not diffable text */
     }

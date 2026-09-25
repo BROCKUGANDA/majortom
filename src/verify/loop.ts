@@ -35,6 +35,8 @@ export interface VerifyLoopResult {
   iterations: number;
   green: boolean;
   status: "verified" | "failed_verification";
+  /** Real elapsed time for the whole loop (§10.2 metrics — never estimated). */
+  wallClockMs: number;
   /** Ledger trail: one entry per iteration (§6 acceptance: complete ledger trail). */
   trail: Array<{
     iteration: number;
@@ -143,6 +145,7 @@ export async function verifyLoop(options: VerifyLoopOptions): Promise<VerifyLoop
     iterations: iteration,
     green,
     status,
+    wallClockMs: Date.now() - started,
     trail,
   };
 }

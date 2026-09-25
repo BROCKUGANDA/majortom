@@ -8,6 +8,7 @@
 // from user data: the command is an argv array, so a repo name can never become a
 // second command (I9).
 
+import { readFileSync, rmSync } from "fs";
 import { execFile } from "child_process";
 import { promisify } from "util";
 import { join } from "path";
@@ -42,15 +43,21 @@ export class TestTimeoutError extends Error {
   }
 }
 
-/** Build the argv for the runner. No shell string is ever constructed. */
-export function buildArgs(runner: Runner, configFile?: string, only?: string[]): string[] {
+/**
+ * Build the argv for the runner. No shell string is ever constructed.
+ *
+ * `outputFile` MUST be an absolute path: a relative one is resolved against the
+ * runner's cwd, so the report lands somewhere the caller never looks and the run
+ * reports "no test results" for a suite that actually ran.
+ */
+export function buildArgs(runner: Runner, outputFile: string, only?: string[], configFile?: string): string[] {
   if (runner === "vitest") {
-    const args = ["vitest", "run", "--reporter=json", "--outputFile=" + join(process.cwd(), "vitest-results.json")];
+    const args = ["vitest", "run", "--reporter=json", `--outputFile=${outputFile}`];
     if (configFile) args.push("--config", configFile);
     if (only?.length) args.push("-t", only.join("|"));
     return args;
   }
-  const args = ["jest", "--json", "--outputFile=vitest-results.json"];
+  const args = ["jest", "--json", `--outputFile=${outputFile}`];
   if (configFile) args.push("--config", configFile);
   if (only?.length) args.push("-t", only.join("|"));
   return args;
@@ -61,8 +68,15 @@ export async function runSuite(options: RunOptions): Promise<Baseline> {
   const started = Date.now();
   const env = { ...process.env, ...options.env, CI: "1", npm_config_userconfig: "" };
 
-  // vitest resolves via npx in the repo under test.
-  const args = options.runner === "vitest" ? ["vitest", "run", "--reporter=json", "--outputFile=vitest-results.json"] : buildArgs(options.runner, undefined, options.only);
+  // The JSON reporter writes NOTHING to stdout, so the report must be read back from
+  // disk. Use an ABSOLUTE output path: a relative one resolves against the runner's
+  // cwd, which is not necessarily the repo under test, and the run then reports
+  // "no test results" for a suite that actually ran.
+  const reportPath = join(options.repoRoot, ".majortom-vitest-results.json");
+  const args =
+    options.runner === "vitest"
+      ? ["vitest", "run", "--reporter=json", `--outputFile=${reportPath}`]
+      : buildArgs(options.runner, reportPath, options.only);
 
   let stdout = "";
   let stderr = "";
@@ -73,6 +87,7 @@ export async function runSuite(options: RunOptions): Promise<Baseline> {
       env,
       timeout: options.timeoutMs,
       maxBuffer: 32 * 1024 * 1024,
+      shell: process.platform === "win32",
     });
     stdout = res.stdout;
     stderr = res.stderr;
@@ -84,7 +99,22 @@ export async function runSuite(options: RunOptions): Promise<Baseline> {
     exitCode = typeof e.code === "number" ? e.code : 1;
   }
 
-  const parsed = parseReport(options.runner, stdout, stderr);
+  // Prefer the on-disk report; fall back to stdout for runners that print JSON.
+  let reportText = "";
+  try {
+    reportText = readFileSync(reportPath, "utf8");
+  } catch {
+    reportText = "";
+  } finally {
+    try {
+      rmSync(reportPath, { force: true });
+    } catch {
+      /* best effort: the file may not exist */
+    }
+  }
+  if (!reportText.trim()) reportText = stdout;
+
+  const parsed = parseReport(options.runner, reportText, stderr);
   const totalMs = Date.now() - started;
 
   if (parsed.results.length === 0 && parsed.collectionErrors.length === 0) {

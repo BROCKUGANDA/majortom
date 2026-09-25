@@ -7,4 +7,4 @@
 - [x] Phase 5: Fixer subagents + parallel execution
 - [x] Phase 6: Verification loop
 - [x] Phase 7: Report + PR
-- [ ] Phase 8: E2E rehearsal + metrics + demo capture
+- [x] Phase 8: E2E rehearsal + metrics + demo capture
