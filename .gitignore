@@ -20,3 +20,8 @@ npm-debug.log*
 # Generated demo media (regenerate with: python media/render.py)
 media/frames/
 media/captures/
+media/audio/
+media/timeline.json
+__pycache__/
+*.pyc
+media/narration.mp3

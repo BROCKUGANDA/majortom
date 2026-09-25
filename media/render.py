@@ -223,16 +223,22 @@ def f_pipeline(d: ImageDraw.ImageDraw, facts: dict) -> None:
 
 
 def f_run(d: ImageDraw.ImageDraw, facts: dict) -> None:
+    f_run_scroll(d, facts, read_capture("demo-run.txt"), 0)
+
+
+def f_run_scroll(
+    d: ImageDraw.ImageDraw, facts: dict, lines: list[str], offset: int
+) -> None:
+    """Draw the real terminal capture, scrolled to `offset` lines down."""
     d.text((80, 190), "The run", font=font(SANS_B, 46), fill=FG)
     panel(d, (80, 270, W - 80, H - 140))
-    lines = read_capture("demo-run.txt")
-    # keep the most informative window: from the report header to the exit line
+    # keep the informative window: from the report header onward
     start = 0
     for i, l in enumerate(lines):
         if l.startswith("# MajorTom Migration Report"):
             start = i
             break
-    window = lines[start : start + 40]
+    window = lines[start + offset : start + offset + 40]
     f = font(MONO, 21)
     y = 296
     for l in window:
