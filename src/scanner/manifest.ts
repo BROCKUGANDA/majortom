@@ -89,7 +89,7 @@ export function scanManifest(repoRoot: string): ManifestScan {
   }
 
   // Workspace detection
-  const workspaces = !!(pkg.workspaces);
+  const workspaces = !!pkg.workspaces;
 
   // Read resolved versions from lockfile
   const resolvedVersions = new Map<string, string>();

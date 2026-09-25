@@ -24,7 +24,10 @@ interface Rule {
 
 const RULES: Rule[] = [
   // Private key headers (PEM) — the whole block, since partial redaction leaks.
-  { kind: "private-key", re: /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g },
+  {
+    kind: "private-key",
+    re: /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----/g,
+  },
   // GitHub tokens: ghp_ / gho_ / ghu_ / ghs_ / ghr_ and fine-grained github_pat_.
   { kind: "github-token", re: /\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{16,}\b/g },
   { kind: "github-pat", re: /\bgithub_pat_[A-Za-z0-9_]{20,}\b/g },

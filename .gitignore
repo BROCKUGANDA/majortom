@@ -1,10 +1,18 @@
 .majortom/
+.test-sandbox/
 node_modules/
 dist/
 coverage/
 *.tgz
 .env
 .env.*
+!.env.example
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.log
+npm-debug.log*
 
 # stray tool temp files
 .hermes-tmp.*

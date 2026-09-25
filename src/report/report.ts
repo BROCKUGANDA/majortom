@@ -41,6 +41,17 @@ export interface ReportInput {
   items: PlanItem[];
   /** I5 proof: every path that changed during the run. */
   changedFiles: string[];
+  /** Files rewritten by the manifest bump's reinstall, reported separately from I5. */
+  bumpArtifacts?: string[];
+  /** §9.4 manifest bump record, when one was performed. */
+  manifestBump?: {
+    file: string;
+    from: string;
+    to: string;
+    changed: boolean;
+    itemId: string | null;
+    citationRef: string | null;
+  };
   /** Work-map paths, for the diff-scope assertion in the report. */
   workMapFiles: string[];
   /** §6 suppressed/ambiguous matches and §4 plan warnings. */
@@ -112,7 +123,12 @@ export function reviewOrder(
   items: PlanItem[]
 ): Array<{ file: string; score: number; why: string }> {
   const byId = new Map(items.map((i) => [i.id, i]));
-  const failingFiles = new Set(failures.filter((f) => f.orphaned).map((f) => f.file).filter(Boolean) as string[]);
+  const failingFiles = new Set(
+    failures
+      .filter((f) => f.orphaned)
+      .map((f) => f.file)
+      .filter(Boolean) as string[]
+  );
   const scored = new Map<string, { score: number; why: string }>();
 
   for (const q of queues) {
@@ -153,28 +169,48 @@ function humanReviewEntries(input: ReportInput, coverage: CitationCoverage): Hum
 
   // H1 — an uncited edit that must never have been applied (§9.3).
   for (const edit of coverage.uncited) {
-    out.push({ code: "H1", where: edit.file, reason: `edit claims ${edit.itemId} but no resolvable citation backs it` });
+    out.push({
+      code: "H1",
+      where: edit.file,
+      reason: `edit claims ${edit.itemId} but no resolvable citation backs it`,
+    });
   }
   // H2/H3/H4 from the fixers.
   for (const q of input.queues) {
     for (const f of q.files) {
       if (f.outcome === "human-review" && f.humanReview) {
-        out.push({ code: f.humanReview.code as HumanReviewCode, where: f.file, reason: f.humanReview.reason });
+        out.push({
+          code: f.humanReview.code as HumanReviewCode,
+          where: f.file,
+          reason: f.humanReview.reason,
+        });
       }
     }
   }
   // H3 — low-confidence plan items applied or skipped (§4 confidence floor 0.6).
   for (const item of input.items) {
     if (item.confidence < 0.6) {
-      out.push({ code: "H3", where: item.id, reason: `plan item confidence ${item.confidence} is below the 0.6 floor` });
+      out.push({
+        code: "H3",
+        where: item.id,
+        reason: `plan item confidence ${item.confidence} is below the 0.6 floor`,
+      });
     }
   }
   // H5 — failures in files owned by no queue, or collection regressions (§8.2).
   for (const f of input.failures) {
     if (f.orphaned) {
-      out.push({ code: "H5", where: f.testId, reason: "failure is in a file owned by no queue; never reassigned" });
+      out.push({
+        code: "H5",
+        where: f.testId,
+        reason: "failure is in a file owned by no queue; never reassigned",
+      });
     } else if (f.classification === "collection_regression") {
-      out.push({ code: "H5", where: f.testId, reason: "test present at baseline is absent after migration" });
+      out.push({
+        code: "H5",
+        where: f.testId,
+        reason: "test present at baseline is absent after migration",
+      });
     }
   }
   // H6 — plan warnings needing a decision.
@@ -191,11 +227,11 @@ export function renderReport(input: ReportInput): string {
   const before = countTests(input.baseline);
   const after = countTests(input.postRun);
   const preExisting = input.failures.filter((f) => f.classification === "pre_existing");
-  const outOfScope = input.changedFiles.filter(
-    (f) => !input.workMapFiles.includes(f)
-  );
+  const outOfScope = input.changedFiles.filter((f) => !input.workMapFiles.includes(f));
   const byId = new Map(input.items.map((i) => [i.id, i]));
-  const { text, hits } = redactWithReport(buildBody(input, coverage, review, before, after, preExisting, outOfScope, byId));
+  const { text, hits } = redactWithReport(
+    buildBody(input, coverage, review, before, after, preExisting, outOfScope, byId)
+  );
   void hits;
   return text;
 }
@@ -213,7 +249,9 @@ function buildBody(
   const L: string[] = [];
   const green = input.green;
 
-  L.push(`# MajorTom Migration Report - ${input.dependency} ${input.fromVersion} -> ${input.toVersion}`);
+  L.push(
+    `# MajorTom Migration Report - ${input.dependency} ${input.fromVersion} -> ${input.toVersion}`
+  );
   L.push(
     `Run ${input.runId} - ${input.date} - wall clock ${formatDuration(input.wallClockMs)} - ` +
       `verify iterations ${input.verifyIterations}/${input.maxVerifyIterations}`
@@ -225,11 +263,11 @@ function buildBody(
   L.push(
     green
       ? `GREEN - verification found no failure attributable to this migration` +
-        (preExisting.length > 0
-          ? `; ${preExisting.length} pre-existing failure(s) excluded from accounting per §8.2.`
-          : ".")
+          (preExisting.length > 0
+            ? `; ${preExisting.length} pre-existing failure(s) excluded from accounting per §8.2.`
+            : ".")
       : `NOT GREEN - ${input.failures.filter((f) => f.classification !== "pre_existing").length} failure(s) ` +
-        `are attributable to this migration. **This pull request must not be merged as-is.**`
+          `are attributable to this migration. **This pull request must not be merged as-is.**`
   );
   L.push("");
 
@@ -238,10 +276,30 @@ function buildBody(
   L.push("| Metric | Before | After |");
   L.push("| --- | --- | --- |");
   L.push(`| tests passing | ${before.passing}/${before.total} | ${after.passing}/${after.total} |`);
-  L.push(`| pre-existing failures (excluded) | ${input.baseline.failingIds.length} | ${preExisting.length} |`);
+  L.push(
+    `| pre-existing failures (excluded) | ${input.baseline.failingIds.length} | ${preExisting.length} |`
+  );
   L.push(`| files changed | - | ${input.changedFiles.length} |`);
   L.push(`| citation coverage | - | ${pct(coverage.ratio)} |`);
   L.push("");
+
+  // §9.4: the manifest bump is called out separately — it is the change that makes
+  // the code edits meaningful, and a reader must be able to see it happened.
+  if (input.manifestBump) {
+    const b = input.manifestBump;
+    L.push("## Dependency manifest");
+    if (b.changed) {
+      L.push(`- \`${b.file}\`: **${b.from} -> ${b.to}**`);
+      L.push(
+        b.itemId
+          ? `- Authorised by plan item ${b.itemId}${b.citationRef ? ` (${b.citationRef})` : ""}`
+          : "- **No plan item cites this change** — flagged for review (H1)."
+      );
+    } else {
+      L.push(`- \`${b.file}\` already declares ${b.to}; no bump needed.`);
+    }
+    L.push("");
+  }
 
   // ── Changes, grouped by plan item ──────────────────────────────────────────
   L.push("## Changes (grouped by plan item)");
@@ -326,9 +384,13 @@ function buildBody(
 
   // ── Appendix ───────────────────────────────────────────────────────────────
   L.push("## Appendix: suppressed matches, plan warnings, ledger metrics");
-  L.push(`- citation coverage: ${coverage.cited}/${coverage.applied} applied edits (${pct(coverage.ratio)})`);
+  L.push(
+    `- citation coverage: ${coverage.cited}/${coverage.applied} applied edits (${pct(coverage.ratio)})`
+  );
   if ((input.unmatchedItemIds ?? []).length > 0) {
-    L.push(`- plan items with no detected call sites: ${(input.unmatchedItemIds ?? []).join(", ")}`);
+    L.push(
+      `- plan items with no detected call sites: ${(input.unmatchedItemIds ?? []).join(", ")}`
+    );
   }
   if ((input.suppressedMatches ?? []).length > 0) {
     L.push(`- suppressed matches: ${(input.suppressedMatches ?? []).length}`);

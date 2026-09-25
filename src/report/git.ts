@@ -64,7 +64,11 @@ export function branchNameFor(runId: string): string {
  * Create majortom/<runId> from the base commit recorded at INTAKE.
  * Refuses a protected base (I1).
  */
-export async function createRunBranch(repoRoot: string, runId: string, baseCommit: string): Promise<BranchPlan> {
+export async function createRunBranch(
+  repoRoot: string,
+  runId: string,
+  baseCommit: string
+): Promise<BranchPlan> {
   const branch = branchNameFor(runId);
   await git(["checkout", "-b", branch, baseCommit], repoRoot);
   return { branch, baseCommit };

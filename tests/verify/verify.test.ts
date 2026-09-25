@@ -7,7 +7,13 @@ import { describe, it, expect } from "vitest";
 // before schemas.ts got `undefined` for that binding (a real cycle, invisible until
 // the call site). classify.ts is now types-only, but import classify before schemas
 // anyway so this suite can never reintroduce an order dependency.
-import { classify, ownershipFromQueues, fileFromMessage, fileFromTestId, COUNTS_AGAINST_MIGRATION } from "../../src/verify/classify.js";
+import {
+  classify,
+  ownershipFromQueues,
+  fileFromMessage,
+  fileFromTestId,
+  COUNTS_AGAINST_MIGRATION,
+} from "../../src/verify/classify.js";
 import { Baseline } from "../../src/verify/schemas.js";
 import { parseReport } from "../../src/verify/adapters.js";
 
@@ -45,8 +51,14 @@ const OWNERSHIP = ownershipFromQueues([
 
 describe("§8.2 classification table", () => {
   it("post=fail + id in baseline.failingIds -> pre_existing (excluded from accounting)", () => {
-    const base = baselineOf([["a::x::t1", "pass"], ["a::x::t2", "fail"]]);
-    const post = baselineOf([["a::x::t1", "pass"], ["a::x::t2", "fail"]]);
+    const base = baselineOf([
+      ["a::x::t1", "pass"],
+      ["a::x::t2", "fail"],
+    ]);
+    const post = baselineOf([
+      ["a::x::t1", "pass"],
+      ["a::x::t2", "fail"],
+    ]);
     const { failures, counts } = classify({ baseline: base, post, ownership: OWNERSHIP });
     const f = failures.find((x) => x.testId === "a::x::t2");
     expect(f?.classification).toBe("pre_existing");
@@ -67,7 +79,10 @@ describe("§8.2 classification table", () => {
 
   it("post=fail + id absent from baseline -> new_or_renamed (treated as migration_caused, flagged)", () => {
     const base = baselineOf([["a::x::t1", "pass"]]);
-    const post = baselineOf([["a::x::t1", "pass"], ["a::y::t9", "fail"]]);
+    const post = baselineOf([
+      ["a::x::t1", "pass"],
+      ["a::y::t9", "fail"],
+    ]);
     const { failures, counts } = classify({ baseline: base, post, ownership: OWNERSHIP });
     const f = failures.find((x) => x.testId === "a::y::t9");
     expect(f?.classification).toBe("new_or_renamed");
@@ -86,7 +101,10 @@ describe("§8.2 classification table", () => {
   });
 
   it("id in baseline, absent from post -> collection_regression (high severity)", () => {
-    const base = baselineOf([["a::x::t1", "pass"], ["a::x::t2", "pass"]]);
+    const base = baselineOf([
+      ["a::x::t1", "pass"],
+      ["a::x::t2", "pass"],
+    ]);
     const post = baselineOf([["a::x::t1", "pass"]]);
     const { failures, counts } = classify({ baseline: base, post, ownership: OWNERSHIP });
     const f = failures.find((x) => x.testId === "a::x::t2");
@@ -159,7 +177,8 @@ describe("green determination (I6)", () => {
 
 describe("file attribution helpers", () => {
   it("extracts a repo-relative file from a stack trace", () => {
-    const msg = "AssertionError: expected 200 got 500\n    at fn (C:/repo/src/routes/users.js:9:14)";
+    const msg =
+      "AssertionError: expected 200 got 500\n    at fn (C:/repo/src/routes/users.js:9:14)";
     expect(fileFromMessage(msg)).toBe("src/routes/users.js");
   });
 

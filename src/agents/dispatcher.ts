@@ -81,7 +81,10 @@ export async function dispatchFixers(input: DispatchInput): Promise<DispatchResu
     queues: results,
     wallClockMs,
     parallelSpeedup: Number(parallelSpeedup.toFixed(2)),
-    totalEdits: results.reduce((acc, r) => acc + r.files.reduce((a, f) => a + f.edits.length, 0), 0),
+    totalEdits: results.reduce(
+      (acc, r) => acc + r.files.reduce((a, f) => a + f.edits.length, 0),
+      0
+    ),
     filesFixed: results.reduce(
       (acc, r) => acc + r.files.filter((f) => f.outcome === "fixed").length,
       0

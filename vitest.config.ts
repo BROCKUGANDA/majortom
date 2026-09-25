@@ -66,6 +66,32 @@ export default defineConfig({
           environment: "node",
         },
       },
+      // e2e orchestrator tests
+      {
+        test: {
+          name: "e2e",
+          include: ["tests/e2e/**/*.test.ts"],
+          environment: "node",
+        },
+      },
+      // core (manifest bump, resume) tests
+      {
+        test: {
+          name: "core",
+          include: ["tests/core/**/*.test.ts"],
+          environment: "node",
+        },
+      },
+    ],
+    // Nothing outside tests/ and fixtures/ is a test. Without this, Vitest's default
+    // glob sweeps .test-sandbox/ — the in-repo scratch dir where acceptance tests and
+    // CLI smoke runs copy the fixture — and tries to RUN those copies as suites.
+    exclude: [
+      "**/node_modules/**",
+      "dist/**",
+      ".majortom/**",
+      ".test-sandbox/**",
+      "coverage/**",
     ],
   },
 });

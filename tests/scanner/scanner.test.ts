@@ -33,9 +33,9 @@ function loadCannedPlan(): CannedPlan {
 describe("impactScan — breakage coverage", () => {
   it("covers every seeded breakage in BREAKAGES.json", async () => {
     const plan = loadCannedPlan();
-    const breakages = JSON.parse(
-      readFileSync(join(FIXTURE_ROOT, "BREAKAGES.json"), "utf8")
-    ) as { entries: Array<{ planItemRef: string }> };
+    const breakages = JSON.parse(readFileSync(join(FIXTURE_ROOT, "BREAKAGES.json"), "utf8")) as {
+      entries: Array<{ planItemRef: string }>;
+    };
 
     const result = await impactScan(FIXTURE_ROOT, plan.items);
 
@@ -134,7 +134,8 @@ describe("partition — disjoint queues", () => {
     const q2 = partition(result2.entries, 3).map((q) => [...q.files].sort());
 
     // Sort queues by their first file for comparison
-    const sortQueues = (qs: typeof q1) => [...qs].sort((a, b) => (a[0] ?? "").localeCompare(b[0] ?? ""));
+    const sortQueues = (qs: typeof q1) =>
+      [...qs].sort((a, b) => (a[0] ?? "").localeCompare(b[0] ?? ""));
     expect(sortQueues(q1)).toEqual(sortQueues(q2));
   });
 

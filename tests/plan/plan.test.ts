@@ -97,9 +97,22 @@ describe("§10.1 Phase 4 gate — >= 80% of Annex B present", () => {
   it("extracts at least 80% of the Annex B breaking-change catalog", () => {
     // Annex B (SPEC.md) seeded=yes rows, i.e. the changes the fixture actually seeds.
     const ANNEX_B_SEEDED = [
-      "EX-01", "EX-02", "EX-03", "EX-04", "EX-06", "EX-07", "EX-08",
-      "EX-09", "EX-10", "EX-11", "EX-12", "EX-13", "EX-14", "EX-15",
-      "EX-17", "EX-18",
+      "EX-01",
+      "EX-02",
+      "EX-03",
+      "EX-04",
+      "EX-06",
+      "EX-07",
+      "EX-08",
+      "EX-09",
+      "EX-10",
+      "EX-11",
+      "EX-12",
+      "EX-13",
+      "EX-14",
+      "EX-15",
+      "EX-17",
+      "EX-18",
     ];
     const { plan } = planFor(REAL_GUIDE);
     const extracted = new Set(plan.items.map((i) => i.id));

@@ -7,6 +7,8 @@
 // else — no git, no network, no file writes of its own. I1 and I9 are properties of
 // the orchestrator and its components, not of this file.
 
+import { readFileSync } from "fs";
+import { join } from "path";
 import { runMigration } from "../core/orchestrator.js";
 import { MajorTomError } from "../core/errors.js";
 import { readLedger, runDir } from "../core/ledger.js";
@@ -81,8 +83,7 @@ function requireFlag(args: Args, name: string): string {
 
 function readCurrentVersion(repoRoot: string, dep: string): string {
   try {
-    const { readFileSync } = require("fs") as typeof import("fs");
-    const pkg = JSON.parse(readFileSync(`${repoRoot}/package.json`, "utf8")) as {
+    const pkg = JSON.parse(readFileSync(join(repoRoot, "package.json"), "utf8")) as {
       dependencies?: Record<string, string>;
     };
     const raw = pkg.dependencies?.[dep] ?? "unknown";

@@ -29,7 +29,12 @@ function baseline(results: Array<[string, "pass" | "fail"]>): Baseline {
     command: "npx vitest run",
     exitCode: 0,
     totalMs: 10,
-    results: results.map(([id, status]) => ({ id, status, durationMs: 1, message: status === "fail" ? "x" : null })),
+    results: results.map(([id, status]) => ({
+      id,
+      status,
+      durationMs: 1,
+      message: status === "fail" ? "x" : null,
+    })),
     failingIds: results.filter(([, s]) => s === "fail").map(([id]) => id),
     collectionErrors: [],
   };
@@ -59,10 +64,24 @@ const baseInput = {
   wallClockMs: 41 * 60 * 1000 + 12 * 1000,
   verifyIterations: 2,
   maxVerifyIterations: 3,
-  baseline: baseline([["a::t1", "pass"], ["a::t2", "fail"]]),
-  postRun: baseline([["a::t1", "pass"], ["a::t2", "fail"]]),
+  baseline: baseline([
+    ["a::t1", "pass"],
+    ["a::t2", "fail"],
+  ]),
+  postRun: baseline([
+    ["a::t1", "pass"],
+    ["a::t2", "fail"],
+  ]),
   failures: [
-    { testId: "a::t2", classification: "pre_existing", message: "boom", file: null, queueId: null, orphaned: false, assertion: null },
+    {
+      testId: "a::t2",
+      classification: "pre_existing",
+      message: "boom",
+      file: null,
+      queueId: null,
+      orphaned: false,
+      assertion: null,
+    },
   ] as ClassifiedFailure[],
   changedFiles: ["src/routes/users.js"],
   workMapFiles: ["src/routes/users.js", "src/routes/auth.js"],
@@ -76,7 +95,13 @@ describe("§9.1 report skeleton", () => {
     const md = renderReport({
       ...baseInput,
       green: true,
-      queues: [queueResult({ files: [{ file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08")], attempts: 1 }] })],
+      queues: [
+        queueResult({
+          files: [
+            { file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08")], attempts: 1 },
+          ],
+        }),
+      ],
     });
     for (const heading of [
       "# MajorTom Migration Report - express 4.18.2 -> 5.1.0",
@@ -104,7 +129,13 @@ describe("§9.1 report skeleton", () => {
     const md = renderReport({
       ...baseInput,
       green: true,
-      queues: [queueResult({ files: [{ file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08")], attempts: 1 }] })],
+      queues: [
+        queueResult({
+          files: [
+            { file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08")], attempts: 1 },
+          ],
+        }),
+      ],
     });
     expect(md).toContain("### EX-08 -");
     expect(md).toContain("Guide: section");
@@ -136,7 +167,18 @@ describe("I6 verdict honesty", () => {
 describe("§9.2 citation coverage", () => {
   it("is 1.0 when every applied edit resolves to a cited plan item", () => {
     const cov = computeCitationCoverage(
-      [queueResult({ files: [{ file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08"), edit("EX-09")], attempts: 1 }] })],
+      [
+        queueResult({
+          files: [
+            {
+              file: "src/routes/users.js",
+              outcome: "fixed",
+              edits: [edit("EX-08"), edit("EX-09")],
+              attempts: 1,
+            },
+          ],
+        }),
+      ],
       plan.items
     );
     expect(cov.applied).toBe(2);
@@ -149,7 +191,18 @@ describe("§9.2 citation coverage", () => {
     // a real plan item (the seeded no-match item) and therefore resolves fine.
     const GHOST = "EX-42";
     const cov = computeCitationCoverage(
-      [queueResult({ files: [{ file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-01"), edit(GHOST)], attempts: 1 }] })],
+      [
+        queueResult({
+          files: [
+            {
+              file: "src/routes/users.js",
+              outcome: "fixed",
+              edits: [edit("EX-01"), edit(GHOST)],
+              attempts: 1,
+            },
+          ],
+        }),
+      ],
       plan.items
     );
     expect(cov.applied).toBe(2);
@@ -159,7 +212,18 @@ describe("§9.2 citation coverage", () => {
     const md = renderReport({
       ...baseInput,
       green: true,
-      queues: [queueResult({ files: [{ file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-01"), edit(GHOST)], attempts: 1 }] })],
+      queues: [
+        queueResult({
+          files: [
+            {
+              file: "src/routes/users.js",
+              outcome: "fixed",
+              edits: [edit("EX-01"), edit(GHOST)],
+              attempts: 1,
+            },
+          ],
+        }),
+      ],
     });
     expect(md).toMatch(/H1 - src\/routes\/users\.js/);
   });
@@ -167,7 +231,13 @@ describe("§9.2 citation coverage", () => {
   it("an edit whose quote does NOT resolve in the guide is uncited even though the item exists", () => {
     // quoteResolves=false models a citation that cannot be found in the artifact.
     const cov = computeCitationCoverage(
-      [queueResult({ files: [{ file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08")], attempts: 1 }] })],
+      [
+        queueResult({
+          files: [
+            { file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08")], attempts: 1 },
+          ],
+        }),
+      ],
       plan.items,
       () => false
     );
@@ -179,7 +249,13 @@ describe("§9.2 citation coverage", () => {
     const md = renderReport({
       ...baseInput,
       green: true,
-      queues: [queueResult({ files: [{ file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08")], attempts: 1 }] })],
+      queues: [
+        queueResult({
+          files: [
+            { file: "src/routes/users.js", outcome: "fixed", edits: [edit("EX-08")], attempts: 1 },
+          ],
+        }),
+      ],
     });
     expect(md).toContain("| citation coverage | - | 100% |");
   });
@@ -195,7 +271,13 @@ describe("§9.3 HUMAN REVIEW taxonomy", () => {
       queues: [
         queueResult({
           files: [
-            { file: "src/routes/legacy.js", outcome: "human-review", edits: [], attempts: 5, humanReview: { code: "H2", reason: "fixer exhausted 5 attempts" } },
+            {
+              file: "src/routes/legacy.js",
+              outcome: "human-review",
+              edits: [],
+              attempts: 5,
+              humanReview: { code: "H2", reason: "fixer exhausted 5 attempts" },
+            },
           ],
         }),
       ],
@@ -214,7 +296,15 @@ describe("§9.3 HUMAN REVIEW taxonomy", () => {
       ...baseInput,
       green: false,
       failures: [
-        { testId: "src/unknown.js::s::t", classification: "migration_caused", message: "e", file: "src/unknown.js", queueId: null, orphaned: true, assertion: null },
+        {
+          testId: "src/unknown.js::s::t",
+          classification: "migration_caused",
+          message: "e",
+          file: "src/unknown.js",
+          queueId: null,
+          orphaned: true,
+          assertion: null,
+        },
       ] as ClassifiedFailure[],
       queues: [],
     });
@@ -226,7 +316,9 @@ describe("§9.3 HUMAN REVIEW taxonomy", () => {
       ...baseInput,
       green: true,
       queues: [],
-      planWarnings: [{ code: "W_VERSION_UNMENTIONED", message: "guide does not mention the target version" }],
+      planWarnings: [
+        { code: "W_VERSION_UNMENTIONED", message: "guide does not mention the target version" },
+      ],
     });
     expect(md).toMatch(/H6 - W_VERSION_UNMENTIONED/);
   });
@@ -300,8 +392,19 @@ describe("suggested review order", () => {
       [
         queueResult({
           files: [
-            { file: "src/routes/clean.js", outcome: "fixed", edits: [edit("EX-08", "src/routes/clean.js")], attempts: 1 },
-            { file: "src/routes/legacy.js", outcome: "human-review", edits: [], attempts: 5, humanReview: { code: "H2", reason: "budget" } },
+            {
+              file: "src/routes/clean.js",
+              outcome: "fixed",
+              edits: [edit("EX-08", "src/routes/clean.js")],
+              attempts: 1,
+            },
+            {
+              file: "src/routes/legacy.js",
+              outcome: "human-review",
+              edits: [],
+              attempts: 5,
+              humanReview: { code: "H2", reason: "budget" },
+            },
           ],
         }),
       ],
@@ -366,7 +469,12 @@ describe("§9.5 redaction", () => {
             {
               file: "src/config.js",
               outcome: "fixed",
-              edits: [{ ...edit("EX-08", "src/config.js"), after: "GITHUB_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123456789" }],
+              edits: [
+                {
+                  ...edit("EX-08", "src/config.js"),
+                  after: "GITHUB_TOKEN=ghp_abcdefghijklmnopqrstuvwxyz0123456789",
+                },
+              ],
               attempts: 1,
             },
           ],

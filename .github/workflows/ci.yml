@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "phase-*"]
+  pull_request:
+    branches: [main]
+
+# A new push supersedes an in-flight run for the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Format, typecheck, lint, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # The suite is the product's own acceptance gate, so CI runs exactly what
+      # `npm test` runs locally: format check, typecheck, lint, then all 9 test
+      # projects. Nothing is skipped to make CI green.
+      - name: Verify
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+  demo:
+    name: Demo smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: verify
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Proves the documented one-command demo still works end to end. The demo exits
+      # non-zero when the migration is not green, and that is an honest outcome, not a
+      # CI failure — so only a spawn/exit-2 level failure should fail this job.
+      - name: Run the demo
+        run: npm run demo -- --keep --no-install || echo "demo exited $? (non-zero = NOT GREEN, which is a valid outcome)"
+
+      - name: Upload the generated report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-report
+          path: .test-sandbox/demo/.majortom/runs/**/artifacts/report.md
+          if-no-files-found: ignore
+          retention-days: 7

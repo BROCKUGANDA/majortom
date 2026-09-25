@@ -8,8 +8,9 @@
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { cpSync, rmSync, mkdtempSync, existsSync, readFileSync } from "fs";
-import { tmpdir } from "os";
 import { join, resolve } from "path";
+
+import { sandboxCopy } from "../helpers/sandbox.js";
 
 import { runMigration, runBranchName } from "../../src/core/orchestrator.js";
 import { readLedger } from "../../src/core/ledger.js";
@@ -24,7 +25,12 @@ function base(results: Array<[string, "pass" | "fail"]>): Baseline {
     command: "npx vitest run",
     exitCode: 0,
     totalMs: 10,
-    results: results.map(([id, status]) => ({ id, status, durationMs: 1, message: status === "fail" ? "x" : null })),
+    results: results.map(([id, status]) => ({
+      id,
+      status,
+      durationMs: 1,
+      message: status === "fail" ? "x" : null,
+    })),
     failingIds: results.filter(([, s]) => s === "fail").map(([id]) => id),
     collectionErrors: [],
   };
@@ -46,14 +52,13 @@ const baseCfg = {
 
 let roots: string[] = [];
 function freshFixture(): string {
-  const dir = mkdtempSync(join(tmpdir(), "majortom-e2e-"));
-  cpSync(FIXTURE_ROOT, dir, { recursive: true });
+  const dir = sandboxCopy(FIXTURE_ROOT, "majortom-e2e");
   roots.push(dir);
   return dir;
 }
 
 afterAll(() => {
-  for (const d of roots) rmSync(d, { recursive: true, force: true });
+  for (const d of roots) rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
 });
 
 describe("I1 — the run branch", () => {
@@ -94,14 +99,22 @@ describe("seven-stage run", () => {
 
   it("checkpoints every stage to the ledger (I7)", () => {
     const ledger = readLedger(dir, result.runId);
-    const checkpointed = ledger.stages.filter((s) => s.state === "checkpointed").map((s) => s.stage);
+    const checkpointed = ledger.stages
+      .filter((s) => s.state === "checkpointed")
+      .map((s) => s.stage);
     for (const stage of ["PLAN", "IMPACT", "BASELINE", "EXECUTE", "VERIFY", "REPORT"]) {
       expect(checkpointed, `stage ${stage} not checkpointed`).toContain(stage);
     }
   });
 
   it("writes the §3.2 artifact set to disk", () => {
-    for (const artifact of ["plan.json", "workmap.json", "baseline.json", "verify.json", "report.md"]) {
+    for (const artifact of [
+      "plan.json",
+      "workmap.json",
+      "baseline.json",
+      "verify.json",
+      "report.md",
+    ]) {
       const p = join(dir, ".majortom", "runs", result.runId, "artifacts", artifact);
       expect(existsSync(p), `missing artifact ${artifact}`).toBe(true);
     }
@@ -124,8 +137,20 @@ describe("seven-stage run", () => {
 
   it("applied edits, and every changed file is in the work map (I5)", () => {
     expect(result.changedFiles.length).toBeGreaterThan(0);
+    // I5 is strict: every FIXER edit must come from the work map.
     const outOfScope = result.changedFiles.filter((f) => !result.workMapFiles.includes(f));
     expect(outOfScope, `out-of-scope: ${outOfScope.join(", ")}`).toHaveLength(0);
+
+    // The manifest bump's reinstall legitimately rewrites the lockfile. It is NOT a
+    // fixer edit, so it is declared separately — and the only permitted one.
+    for (const artifact of result.bumpArtifacts) {
+      expect(artifact).toBe("package-lock.json");
+    }
+    // Nothing else may appear outside the work map.
+    const unaccounted = [...result.changedFiles, ...result.bumpArtifacts].filter(
+      (f) => !result.workMapFiles.includes(f) && f !== "package-lock.json"
+    );
+    expect(unaccounted, `unaccounted: ${unaccounted.join(", ")}`).toHaveLength(0);
   });
 
   it("reached a green verdict on the first verify iteration", () => {

@@ -11,11 +11,12 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "npm run typecheck && npm run lint && npx vitest run --exclude \"fixtures/**\"",
+    "test": "npm run format:check && npm run typecheck && npm run lint && npx vitest run --exclude \"fixtures/**\"",
     "test:unit": "npx vitest run --exclude \"fixtures/**\"",
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests",
     "format": "prettier --write \"src/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"tests/**/*.ts\"",
     "fixture:test": "npx vitest run --root fixtures/express4",
     "ledger:test": "npx vitest run tests/ledger",
     "scanner:test": "npx vitest run tests/scanner",
@@ -24,7 +25,9 @@
     "verify:test": "npx vitest run tests/verify",
     "report:test": "npx vitest run tests/report",
     "e2e:test": "npx vitest run tests/e2e",
-    "majortom": "node --experimental-vm-modules dist/cli/index.js"
+    "majortom": "node dist/cli/index.js",
+    "demo": "npm run build && node dist/demo.js",
+    "demo:dry": "npm run build && node dist/demo.js --dry-run"
   },
   "dependencies": {
     "@clack/prompts": "0.9.1",

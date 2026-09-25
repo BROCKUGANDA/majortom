@@ -13,8 +13,16 @@
 import { readFileSync, readdirSync, statSync, writeFileSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 import { execFileSync } from "child_process";
-import { createRun, readLedger, startStage, checkpoint, failStage, artifactPath } from "./ledger.js";
+import {
+  createRun,
+  readLedger,
+  startStage,
+  checkpoint,
+  failStage,
+  artifactPath,
+} from "./ledger.js";
 import { MajorTomError } from "./errors.js";
+import { bumpManifest, installDependencies } from "./manifest.js";
 import { ingestGuide } from "../docs/ingest.js";
 import { readGuide } from "../docs/docreader.js";
 import { impactScan } from "../scanner/impact.js";
@@ -56,6 +64,15 @@ export interface StageOutcome {
   detail?: string;
 }
 
+/** Read a file, or null when it does not exist. Used for before/after lockfile diffing. */
+function readFileSafe(path: string): string | null {
+  try {
+    return readFileSync(path, "utf8");
+  } catch {
+    return null;
+  }
+}
+
 export interface RunResult {
   runId: string;
   green: boolean;
@@ -65,6 +82,11 @@ export interface RunResult {
   report: string;
   citationCoverage: number;
   changedFiles: string[];
+  /**
+   * Files rewritten by the manifest bump's reinstall (currently package-lock.json).
+   * Reported separately from `changedFiles` so I5 stays strict over FIXER edits.
+   */
+  bumpArtifacts: string[];
   workMapFiles: string[];
   failures: ClassifiedFailure[];
   verifyIterations: number;
@@ -74,7 +96,10 @@ export interface RunResult {
   error?: string;
 }
 
-function listFiles(dir: string, skip: Set<string> = new Set(["node_modules", ".git", ".majortom"])): string[] {
+function listFiles(
+  dir: string,
+  skip: Set<string> = new Set(["node_modules", ".git", ".majortom"])
+): string[] {
   const out: string[] = [];
   const walk = (d: string, prefix: string) => {
     for (const entry of readdirSync(d)) {
@@ -217,6 +242,7 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
       report: `# MajorTom Migration Report - ${cfg.dependency} ${cfg.fromVersion} -> ${cfg.toVersion}\n\n## Verdict\nNOT GREEN - no tests were found, so no baseline could be established and no claim about this migration can be made.`,
       citationCoverage: 1,
       changedFiles: [],
+      bumpArtifacts: [],
       workMapFiles: [],
       failures: [],
       verifyIterations: 0,
@@ -238,19 +264,78 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
     maxEditAttemptsPerFile: cfg.maxEditAttemptsPerFile,
     parallel: true,
   });
+
+  // §9.4: the manifest bump is its own, separate concern from the code edits. It must
+  // happen BEFORE verify, because a major-version migration whose manifest still pins
+  // the old major is guaranteed to fail verification for reasons that have nothing to
+  // do with the code edits.
+  //
+  // I2: the bump is a real edit, so it carries a citation. A plan item whose fix
+  // mentions the dependency's version range authorises it; without one it is still
+  // applied (the manifest IS the migration target) but the report records it as
+  // uncited rather than claiming a citation it does not have.
+  const manifestItem = plan.items.find(
+    (it) =>
+      it.id === "EX-18" || /version|engine|bump|upgrade the declared/i.test(it.fix.instruction)
+  );
+  const { bump } = bumpManifest({
+    repoRoot: cfg.repoRoot,
+    ecosystem: "npm",
+    dependency: cfg.dependency,
+    toVersion: cfg.toVersion,
+    ...(manifestItem ? { planItem: manifestItem } : {}),
+    write: !cfg.dryRun,
+  });
+
+  // A bumped manifest is not an installed dependency. Until `npm install` runs, the
+  // test suite still executes against the OLD major, so verification measures the
+  // wrong thing — the migrated code is correct for v5 but loaded against v4. Reinstall
+  // before verify so the result reflects the migration the manifest now declares.
+  //
+  // Honesty rules: a failed install is reported, never swallowed; and a dry-run never
+  // installs, because dry-run must not mutate the target repo's dependency tree.
+  //
+  // I5: reinstalling legitimately rewrites package-lock.json, which is NOT in the
+  // work map (it holds no source call sites). Rather than widen the map, the lockfile
+  // is recorded as a manifest-bump side effect so the I5 diff-scope check can account
+  // for it explicitly instead of flagging the run as having touched an unlisted file.
+  const lockBefore = readFileSafe(join(cfg.repoRoot, "package-lock.json"));
+  const reinstall = await installDependencies({
+    repoRoot: cfg.repoRoot,
+    ecosystem: "npm",
+    enabled: bump.changed && !cfg.dryRun,
+    dependency: cfg.dependency,
+    toVersion: cfg.toVersion,
+  });
+  const lockAfter = readFileSafe(join(cfg.repoRoot, "package-lock.json"));
+  const lockChanged = lockBefore !== null && lockAfter !== null && lockBefore !== lockAfter;
+
   checkpoint(cfg.repoRoot, runId, "EXECUTE", artifactFor.EXECUTE, {
     queues: dispatch.queues,
     totalEdits: dispatch.totalEdits,
     parallelSpeedup: dispatch.parallelSpeedup,
     wallClockMs: dispatch.wallClockMs,
+    manifestBump: bump,
+    dependencyInstall: reinstall,
   });
   stages.push({ stage: "EXECUTE", state: "checkpointed" });
 
   const after = cfg.dryRun ? before : snapshotContents(cfg.repoRoot);
+  // The reinstall performed by the manifest bump rewrites package-lock.json. That is a
+  // declared side effect of the bump, not a FIXER edit, so it must not be counted here —
+  // I5 is an assertion about fixer scope, and letting the bump's file inflate the fixer
+  // diff would quietly weaken it. It is reported as `bumpArtifacts` instead.
+  const BUMP_ARTIFACTS = new Set(["package-lock.json"]);
   const changedFiles = [...after.entries()]
-    .filter(([file, content]) => before.get(file) !== content)
+    .filter(([file, content]) => before.get(file) !== content && !BUMP_ARTIFACTS.has(file))
     .map(([file]) => file);
   const workMapFiles = workMap.entries.map((e) => e.file);
+
+  // I5 applies to FIXER edits only. The lockfile is rewritten by the reinstall that the
+  // manifest bump requires (§9.4) — it is a declared side effect of the bump, not a
+  // fixer wandering outside its queue. Mixing the two would weaken the invariant, so
+  // they are reported separately and the caller can check both.
+  const bumpArtifacts = lockChanged ? ["package-lock.json"] : [];
 
   // ---- VERIFY (bounded, §8) ------------------------------------------------
   startStage(cfg.repoRoot, runId, "VERIFY");
@@ -280,9 +365,7 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
 
     // I4: only a migration_caused failure in a QUEUED file is worth another pass.
     // Everything else (pre-existing, orphaned, flaky) will not change by re-running.
-    const routable = failures.filter(
-      (f) => f.classification === "migration_caused" && !f.orphaned
-    );
+    const routable = failures.filter((f) => f.classification === "migration_caused" && !f.orphaned);
     if (routable.length === 0) break; // bounded honestly: no progress is possible
 
     if (i < cfg.maxVerifyIterations) {
@@ -294,7 +377,9 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
         if (retryItems.length === 0) continue;
         await dispatchFixers({
           repoRoot: cfg.repoRoot,
-          queues: [{ queueId: q.queueId, files: targetFiles, itemIds: retryItems.map((r) => r.id) }],
+          queues: [
+            { queueId: q.queueId, files: targetFiles, itemIds: retryItems.map((r) => r.id) },
+          ],
           items: retryItems,
           mode: cfg.dryRun ? "dry-run" : "apply",
           maxEditAttemptsPerFile: cfg.maxEditAttemptsPerFile,
@@ -336,6 +421,8 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
     items: plan.items as PlanItem[],
     changedFiles,
     workMapFiles,
+    bumpArtifacts,
+    manifestBump: bump,
     unmatchedItemIds: scan.unmatchedItemIds,
   });
 
@@ -367,6 +454,7 @@ export async function runMigration(cfg: OrchestratorConfig): Promise<RunResult> 
     report,
     citationCoverage: coverage.ratio,
     changedFiles,
+    bumpArtifacts,
     workMapFiles,
     failures,
     verifyIterations,

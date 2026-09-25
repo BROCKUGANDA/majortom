@@ -11,6 +11,7 @@
 import { createHash } from "crypto";
 import { readFileSync } from "fs";
 import { extname } from "path";
+import { inflateSync, inflateRawSync } from "zlib";
 import { z } from "zod";
 
 export const GuideKind = z.enum(["pdf", "markdown", "url"]);
@@ -75,11 +76,7 @@ export interface IngestOptions {
  * (URLs must already be fetched to a local file by the caller — the orchestrator owns
  * network access per §7.1; the doc-reader has none per §7.2).
  */
-export function ingestGuide(
-  repoRoot: string,
-  path: string,
-  options: IngestOptions
-): GuideArtifact {
+export function ingestGuide(repoRoot: string, path: string, options: IngestOptions): GuideArtifact {
   const abs = path.startsWith("/") || /^[A-Za-z]:/.test(path) ? path : `${repoRoot}/${path}`;
   const rel = path.replace(/\\/g, "/");
   const ext = extname(abs).toLowerCase();
@@ -91,7 +88,9 @@ export function ingestGuide(
     throw new GuideUnreadableError(`Cannot read guide at ${rel}: ${(err as Error).message}`);
   }
   if (raw.byteLength > MAX_QUOTE_SOURCE_BYTES) {
-    throw new GuideUnreadableError(`Guide at ${rel} exceeds the ${MAX_QUOTE_SOURCE_BYTES} byte limit`);
+    throw new GuideUnreadableError(
+      `Guide at ${rel} exceeds the ${MAX_QUOTE_SOURCE_BYTES} byte limit`
+    );
   }
 
   const digest = sha256(raw);
@@ -198,13 +197,10 @@ function isPrintable(s: string): boolean {
 
 function tryInflate(buf: Buffer): Buffer | null {
   try {
-    // Lazily require so the dependency is only touched when a PDF actually needs it.
-    const zlib = require("zlib") as typeof import("zlib");
-    return zlib.inflateSync(buf);
+    return inflateSync(buf);
   } catch {
     try {
-      const zlib = require("zlib") as typeof import("zlib");
-      return zlib.inflateRawSync(buf);
+      return inflateRawSync(buf);
     } catch {
       return null;
     }

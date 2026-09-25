@@ -58,9 +58,10 @@ export function fileFromMessage(message: string | null): string | null {
   // Prefer an explicit src/ path wherever it appears. A Windows drive letter
   // ("C:\repo\src\app.js") must not be captured as the filename, so the pattern
   // anchors on the src/ segment rather than on a leading path prefix.
-  const withSrc = /[A-Za-z]:?[\\/][^\s()'"`]*?[\\/]?(src[\\/][\w.\\/-]+\.(?:js|ts|mjs|cjs|jsx|tsx))(?::\d+)?/.exec(
-    message
-  );
+  const withSrc =
+    /[A-Za-z]:?[\\/][^\s()'"`]*?[\\/]?(src[\\/][\w.\\/-]+\.(?:js|ts|mjs|cjs|jsx|tsx))(?::\d+)?/.exec(
+      message
+    );
   const raw = withSrc?.[1];
   if (raw) {
     const idx = raw.indexOf("src/");
@@ -162,7 +163,13 @@ export function classify(input: ClassifyInput): {
     }
     counts.collection_regression!++;
     failures.push(
-      build(result.id, "collection_regression", "test present at baseline, absent after migration", ownership, false)
+      build(
+        result.id,
+        "collection_regression",
+        "test present at baseline, absent after migration",
+        ownership,
+        false
+      )
     );
   }
 

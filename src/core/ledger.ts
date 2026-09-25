@@ -173,8 +173,7 @@ export function startStage(repoRoot: string, runId: string, stage: Stage): RunLe
   validateTransition(ledger, stage);
 
   // Compute attempt number for this stage
-  const attempt =
-    ledger.stages.filter((s) => s.stage === stage).length + 1;
+  const attempt = ledger.stages.filter((s) => s.stage === stage).length + 1;
 
   const record: StageRecord = {
     stage,
@@ -462,18 +461,11 @@ function validateTransition(ledger: RunLedger, stage: Stage): void {
   }
 }
 
-function lastStageRecord(
-  ledger: RunLedger,
-  stage: Stage,
-  expectedState: StageState
-): StageRecord {
+function lastStageRecord(ledger: RunLedger, stage: Stage, expectedState: StageState): StageRecord {
   const records = ledger.stages.filter((s) => s.stage === stage);
   const last = records[records.length - 1];
   if (!last) {
-    throw new MajorTomError(
-      "E_RUN_TIMEOUT",
-      `Stage ${stage} has not been started`
-    );
+    throw new MajorTomError("E_RUN_TIMEOUT", `Stage ${stage} has not been started`);
   }
   if (last.state !== expectedState) {
     throw new MajorTomError(

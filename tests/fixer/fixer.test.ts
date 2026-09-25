@@ -6,10 +6,20 @@
 // fixture is installed on express@5 and its own supertest suite is executed.
 
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
-import { cpSync, rmSync, mkdtempSync, readFileSync, existsSync, readdirSync, statSync, writeFileSync } from "fs";
-import { tmpdir } from "os";
+import {
+  cpSync,
+  rmSync,
+  mkdtempSync,
+  readFileSync,
+  existsSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "fs";
 import { join, resolve } from "path";
 import { execFileSync } from "child_process";
+
+import { sandboxCopy } from "../helpers/sandbox.js";
 
 import { impactScan } from "../../src/scanner/impact.js";
 import { partition } from "../../src/scanner/partition.js";
@@ -42,9 +52,10 @@ function snapshot(dir: string): Map<string, string> {
   return out;
 }
 
+let copies: string[] = [];
 function freshFixture(): string {
-  const dir = mkdtempSync(join(tmpdir(), "majortom-fix-"));
-  cpSync(FIXTURE_ROOT, dir, { recursive: true });
+  const dir = sandboxCopy(FIXTURE_ROOT, "majortom-fix");
+  copies.push(dir);
   return dir;
 }
 
@@ -57,6 +68,12 @@ beforeAll(async () => {
 
 afterAll(() => {
   if (workRoot && existsSync(workRoot)) rmSync(workRoot, { recursive: true, force: true });
+  // Per-directory cleanup only — a sibling test file may still be using the sandbox
+  // root. Wiping the shared root here causes concurrent-rm races (ENOTEMPTY).
+  for (const d of copies) {
+    rmSync(d, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+  }
+  copies = [];
 });
 
 // ─── I5: the facade physically rejects out-of-queue paths ────────────────────
@@ -306,82 +323,81 @@ describe("dry-run mode", () => {
 // ─── THE GATE: fixture green on express@5 ───────────────────────────────────
 
 describe("§10.1 Phase 5 gate — fixture green on express@5", () => {
-  it(
-    "after fixing, the fixture runs green on express@5 except the seeded pre-existing failure",
-    async () => {
-      const dir = freshFixture();
-      try {
-        await dispatchFixers({
-          repoRoot: dir,
-          queues,
-          items: plan.items,
-          mode: "apply",
-          maxEditAttemptsPerFile: 5,
-        });
+  it("after fixing, the fixture runs green on express@5 except the seeded pre-existing failure", async () => {
+    const dir = freshFixture();
+    try {
+      await dispatchFixers({
+        repoRoot: dir,
+        queues,
+        items: plan.items,
+        mode: "apply",
+        maxEditAttemptsPerFile: 5,
+      });
 
-        // The manifest bump is the orchestrator's job (§9.4: one commit for the
-        // manifest bump), so the test performs it explicitly.
-        const pkgPath = join(dir, "package.json");
-        const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
-          dependencies: Record<string, string>;
-        };
-        pkg.dependencies.express = "5.1.0";
-        writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf8");
-        rmSync(join(dir, "package-lock.json"), { force: true });
+      // The manifest bump is the orchestrator's job (§9.4: one commit for the
+      // manifest bump), so the test performs it explicitly.
+      const pkgPath = join(dir, "package.json");
+      const pkg = JSON.parse(readFileSync(pkgPath, "utf8")) as {
+        dependencies: Record<string, string>;
+      };
+      pkg.dependencies.express = "5.1.0";
+      writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + "\n", "utf8");
+      rmSync(join(dir, "package-lock.json"), { force: true });
 
-        // `shell: true` is required on Windows because npm/npx are .cmd shims that
-        // execFileSync cannot spawn directly (it fails ENOENT without a shell).
-        // It is scoped to Windows only.
-        const isWin = process.platform === "win32";
-        // This host's npm config carries an allow-scripts policy that npm REFUSES to
-        // accept from the environment in a project-scoped install (EALLOWSCRIPTS).
-        // Clear it for the child so the fixture installs cleanly.
-        const env: NodeJS.ProcessEnv = { ...process.env, npm_config_userconfig: "" };
-        for (const key of Object.keys(env)) {
-          if (key.toLowerCase().includes("allow_scripts") || key.toLowerCase().includes("allow-scripts")) {
-            delete env[key];
-          }
+      // `shell: true` is required on Windows because npm/npx are .cmd shims that
+      // execFileSync cannot spawn directly (it fails ENOENT without a shell).
+      // It is scoped to Windows only.
+      const isWin = process.platform === "win32";
+      // This host's npm config carries an allow-scripts policy that npm REFUSES to
+      // accept from the environment in a project-scoped install (EALLOWSCRIPTS).
+      // Clear it for the child so the fixture installs cleanly.
+      const env: NodeJS.ProcessEnv = { ...process.env, npm_config_userconfig: "" };
+      for (const key of Object.keys(env)) {
+        if (
+          key.toLowerCase().includes("allow_scripts") ||
+          key.toLowerCase().includes("allow-scripts")
+        ) {
+          delete env[key];
         }
-        execFileSync("npm", ["install", "--no-audit", "--no-fund"], {
-          cwd: dir,
-          env,
-          stdio: "pipe",
-          ...(isWin ? { shell: true } : {}),
-        });
-
-        let output = "";
-        let exitCode = 0;
-        try {
-          output = execFileSync(
-            "npx",
-            ["vitest", "run", "--config", "vitest.config.js", "--reporter=verbose"],
-            { cwd: dir, env, encoding: "utf8", stdio: "pipe", ...(isWin ? { shell: true } : {}) }
-          );
-        } catch (err) {
-          const e = err as { stdout?: string; stderr?: string };
-          output = (e.stdout ?? "") + (e.stderr ?? "");
-          exitCode = 1;
-        }
-
-        const failing = [...output.matchAll(/^\s*(?:×|✗)\s+(.*)$/gm)]
-          .map((m) => (m[1] ?? "").trim())
-          .filter((t) => t.length > 0);
-        const notPreexisting = failing.filter((t) => !/arithmetic sanity check/i.test(t));
-
-        console.log(
-          `express@5 suite: exit=${exitCode}, failing tests=${failing.length}, ` +
-            `non-preexisting=${notPreexisting.length}` +
-            (notPreexisting.length > 0 ? ` -> ${notPreexisting.join(" | ")}` : "")
-        );
-
-        expect(
-          notPreexisting,
-          `Suite must be green on express@5 except the seeded pre-existing failure.\n${output.slice(-4000)}`
-        ).toHaveLength(0);
-      } finally {
-        rmSync(dir, { recursive: true, force: true });
       }
-    },
-    600_000
-  );
+      execFileSync("npm", ["install", "--no-audit", "--no-fund"], {
+        cwd: dir,
+        env,
+        stdio: "pipe",
+        ...(isWin ? { shell: true } : {}),
+      });
+
+      let output = "";
+      let exitCode = 0;
+      try {
+        output = execFileSync(
+          "npx",
+          ["vitest", "run", "--config", "vitest.config.js", "--reporter=verbose"],
+          { cwd: dir, env, encoding: "utf8", stdio: "pipe", ...(isWin ? { shell: true } : {}) }
+        );
+      } catch (err) {
+        const e = err as { stdout?: string; stderr?: string };
+        output = (e.stdout ?? "") + (e.stderr ?? "");
+        exitCode = 1;
+      }
+
+      const failing = [...output.matchAll(/^\s*(?:×|✗)\s+(.*)$/gm)]
+        .map((m) => (m[1] ?? "").trim())
+        .filter((t) => t.length > 0);
+      const notPreexisting = failing.filter((t) => !/arithmetic sanity check/i.test(t));
+
+      console.log(
+        `express@5 suite: exit=${exitCode}, failing tests=${failing.length}, ` +
+          `non-preexisting=${notPreexisting.length}` +
+          (notPreexisting.length > 0 ? ` -> ${notPreexisting.join(" | ")}` : "")
+      );
+
+      expect(
+        notPreexisting,
+        `Suite must be green on express@5 except the seeded pre-existing failure.\n${output.slice(-4000)}`
+      ).toHaveLength(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }, 600_000);
 });

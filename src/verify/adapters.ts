@@ -13,6 +13,7 @@ import { execFile } from "child_process";
 import { promisify } from "util";
 import { join } from "path";
 import { Baseline, type TestResult } from "./schemas.js";
+import { scrubbedEnv } from "../core/manifest.js";
 
 const execFileAsync = promisify(execFile);
 
@@ -50,7 +51,12 @@ export class TestTimeoutError extends Error {
  * runner's cwd, so the report lands somewhere the caller never looks and the run
  * reports "no test results" for a suite that actually ran.
  */
-export function buildArgs(runner: Runner, outputFile: string, only?: string[], configFile?: string): string[] {
+export function buildArgs(
+  runner: Runner,
+  outputFile: string,
+  only?: string[],
+  configFile?: string
+): string[] {
   if (runner === "vitest") {
     const args = ["vitest", "run", "--reporter=json", `--outputFile=${outputFile}`];
     if (configFile) args.push("--config", configFile);
@@ -66,7 +72,10 @@ export function buildArgs(runner: Runner, outputFile: string, only?: string[], c
 /** Run the suite and parse its JSON report into the §8.1 Baseline shape. */
 export async function runSuite(options: RunOptions): Promise<Baseline> {
   const started = Date.now();
-  const env = { ...process.env, ...options.env, CI: "1", npm_config_userconfig: "" };
+  // This host exports npm_config_allow_scripts, which makes npm ABORT with
+  // "EALLOWSCRIPTS: --allow-scripts is not allowed in project-scoped installs".
+  // Scrub every npm_config_* key, not just userconfig.
+  const env = scrubbedEnv({ ...options.env, CI: "1" });
 
   // The JSON reporter writes NOTHING to stdout, so the report must be read back from
   // disk. Use an ABSOLUTE output path: a relative one resolves against the runner's
@@ -131,7 +140,9 @@ export async function runSuite(options: RunOptions): Promise<Baseline> {
     exitCode,
     totalMs,
     results: parsed.results,
-    failingIds: parsed.results.filter((r) => r.status === "fail" || r.status === "error").map((r) => r.id),
+    failingIds: parsed.results
+      .filter((r) => r.status === "fail" || r.status === "error")
+      .map((r) => r.id),
     collectionErrors: parsed.collectionErrors,
   };
   return baseline;
@@ -159,10 +170,13 @@ export function parseReport(
   // key, so `runner` alone is not enough — and testing for the key alone sends
   // every vitest report down the jest branch, silently losing the suite path.
   // Jest's assertions carry `fullName`; vitest's carry `ancestorTitles`.
-  const suites = ((json as { testResults?: unknown }).testResults ?? []) as Array<Record<string, unknown>>;
-  const firstAssertion = (suites[0]?.assertionResults as Array<Record<string, unknown>> | undefined)?.[0];
-  const isJestShape =
-    firstAssertion !== undefined && "fullName" in firstAssertion;
+  const suites = ((json as { testResults?: unknown }).testResults ?? []) as Array<
+    Record<string, unknown>
+  >;
+  const firstAssertion = (
+    suites[0]?.assertionResults as Array<Record<string, unknown>> | undefined
+  )?.[0];
+  const isJestShape = firstAssertion !== undefined && "fullName" in firstAssertion;
 
   if (runner === "jest" || isJestShape) {
     for (const s of suites) {
