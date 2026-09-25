@@ -63,17 +63,30 @@ const facts = {
   green: /\bGREEN\b/.test(report) && !/NOT GREEN/.test(report),
 };
 
-// citation entries straight out of the report's own per-item sections
+// Per-item sections in the report look like:
+//   ### EX-01 - app.del() removed
+//   Guide: section "app.del()", #app-del - "Express 5 no longer supports ..."
+//   - src/app.js - 1 edit(s)
+// So the interesting columns are the cited guide quote and the touched files.
 const citations = [];
-for (const line of report.split("\n")) {
-  const m2 = line.match(/^###\s+(EX-\d+)\s+-\s+(.+?)\s*$/);
-  if (!m2) continue;
-  const id = m2[1];
-  const title = m2[2];
-  // the status line follows the heading; keep it if present
-  const after = report.slice(report.indexOf(line) + line.length);
-  const st = after.match(/^\s*(applied|human-review|no-change-needed|skipped|failed)\b/i);
-  citations.push({ id, title, detail: st ? st[1] : "" });
+{
+  const lines = report.split("\n");
+  for (let i = 0; i < lines.length; i++) {
+    const h = lines[i].match(/^###\s+(EX-\d+)\s+-\s+(.+?)\s*$/);
+    if (!h) continue;
+    const id = h[1];
+    const title = h[2];
+    let quote = "";
+    const files = [];
+    // scan this item's block only, up to the next ### heading
+    for (let j = i + 1; j < lines.length && !lines[j].startsWith("###"); j++) {
+      const g = lines[j].match(/^Guide:.*?- "([^"]+)"/);
+      if (g) quote = g[1];
+      const f = lines[j].match(/^-\s+(\S+)\s+-\s+(\d+)\s+edit/);
+      if (f) files.push({ path: f[1], edits: Number(f[2]) });
+    }
+    citations.push({ id, title, quote, files, edits: files.reduce((a, f) => a + f.edits, 0) });
+  }
 }
 
 const esc = (s) =>
@@ -179,20 +192,34 @@ const html = `<!doctype html>
 <h2>Every change, cited to the guide</h2>
 ${
   citations.length
-    ? `<table>
-  <tr><th>Item</th><th>Change</th><th>Outcome</th></tr>
+    ? `<p class="sub" style="margin:-4px 0 14px">Each item below is one breaking change from the migration
+  guide, the files it touched, and the guide's own words justifying it. This is the
+  <strong>trust mechanism</strong> — an edit with no quote behind it is refused and flagged
+  <span class="mono">HUMAN REVIEW</span> rather than applied.</p>
+<table>
+  <tr><th>Item</th><th>Change</th><th>Files</th><th>Guide quote</th></tr>
   ${citations
     .map(
       (c) => `<tr>
     <td class="id">${esc(c.id)}</td>
-    <td class="ttl">${esc(c.title)}</td>
-    <td class="mono" style="color:var(--mut)">${esc(c.detail || "—")}</td>
+    <td class="ttl">${esc(c.title)}${
+        c.edits
+          ? `<div style="color:var(--dim);font-size:12px;margin-top:3px">${c.edits} edit${c.edits === 1 ? "" : "s"} applied</div>`
+          : '<div style="color:var(--amb);font-size:12px;margin-top:3px">no change needed</div>'
+      }</td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">${
+      c.files.length
+        ? c.files.map((f) => `${esc(f.path)}<span style="color:var(--dim)"> ×${f.edits}</span>`).join("<br>")
+        : "—"
+    }</td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">${
+      c.quote ? `&ldquo;${esc(c.quote)}&rdquo;` : '<span class="na">no quote</span>'
+    }</td>
   </tr>`
     )
     .join("\n  ")}
-</table>
-<p class="sub" style="margin-top:12px">Citation coverage is <strong>computed</strong> from the applied-edit records, not asserted. An edit with no guide quote behind it is refused and flagged <span class="mono">HUMAN REVIEW</span> instead.</p>`
-    : `<p class="sub">No citation table found in this run's report.</p>`
+</table>`
+    : `<p class="sub">No citation section found in this run's report.</p>`
 }
 
 <h2>Honest accounting</h2>

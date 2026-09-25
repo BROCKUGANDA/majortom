@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>MajorTom — run 01M3DC6D7NKZHWXA0J2P6V9KKK</title>
+<title>MajorTom — run 01M3DDCYWD32J5PMQRQ4A952MW</title>
 <style>
   :root{
     --bg:#0b0f19; --panel:#121826; --panel2:#18202f; --bd:#2c3850;
@@ -51,7 +51,7 @@
 <header>
   <h1>MajorTom</h1>
   <div class="sub">Autonomous dependency-migration agent — <span class="mono">unknown 4.18.2 → 5.1.0</span></div>
-  <div class="sub mono">run 01M3DC6D7NKZHWXA0J2P6V9KKK · 2026-09-25 · status completed</div>
+  <div class="sub mono">run 01M3DDCYWD32J5PMQRQ4A952MW · 2026-09-25 · status completed</div>
   <div class="verdict g">GREEN</div>
 </header>
 <main>
@@ -61,7 +61,7 @@
   <div class="card"><div class="k">Verdict</div><div class="v" style="color:var(--grn)">GREEN</div></div>
   <div class="card"><div class="k">Citation coverage</div><div class="v">100%</div></div>
   <div class="card"><div class="k">Files changed</div><div class="v">9</div></div>
-  <div class="card"><div class="k">Wall clock</div><div class="v">19.5s</div></div>
+  <div class="card"><div class="k">Wall clock</div><div class="v">25.2s</div></div>
   <div class="card"><div class="k">Tests passing</div><div class="v">15 <small>→</small> 15</div></div>
   <div class="card"><div class="k">Human touches</div><div class="v">0</div></div>
   <div class="card"><div class="k">Verify iterations</div><div class="v">1</div></div>
@@ -74,117 +74,133 @@
   <tr>
     <td class="mono" style="font-weight:600">INTAKE</td>
     <td><span class="pill p-ok">checkpointed</span></td>
-    <td class="mono">5 ms</td>
-    <td><div class="bar-track"><div class="bar-fill" style="width:0.05594718585655141%"></div></div></td>
+    <td class="mono">8 ms</td>
+    <td><div class="bar-track"><div class="bar-fill" style="width:0.06307158625039419%"></div></div></td>
   </tr>
   <tr>
     <td class="mono" style="font-weight:600">PLAN</td>
     <td><span class="pill p-ok">checkpointed</span></td>
-    <td class="mono">40 ms</td>
-    <td><div class="bar-track"><div class="bar-fill" style="width:0.4475774868524113%"></div></div></td>
+    <td class="mono">51 ms</td>
+    <td><div class="bar-track"><div class="bar-fill" style="width:0.402081362346263%"></div></div></td>
   </tr>
   <tr>
     <td class="mono" style="font-weight:600">IMPACT</td>
     <td><span class="pill p-ok">checkpointed</span></td>
-    <td class="mono">318 ms</td>
-    <td><div class="bar-track"><div class="bar-fill" style="width:3.55824102047667%"></div></div></td>
+    <td class="mono">409 ms</td>
+    <td><div class="bar-track"><div class="bar-fill" style="width:3.224534847051403%"></div></div></td>
   </tr>
   <tr>
     <td class="mono" style="font-weight:600">BASELINE</td>
     <td><span class="pill p-ok">checkpointed</span></td>
-    <td class="mono">4839 ms</td>
-    <td><div class="bar-track"><div class="bar-fill" style="width:54.14568647197046%"></div></div></td>
+    <td class="mono">6153 ms</td>
+    <td><div class="bar-track"><div class="bar-fill" style="width:48.50993377483444%"></div></div></td>
   </tr>
   <tr>
     <td class="mono" style="font-weight:600">EXECUTE</td>
     <td><span class="pill p-ok">checkpointed</span></td>
-    <td class="mono">8937 ms</td>
+    <td class="mono">12684 ms</td>
     <td><div class="bar-track"><div class="bar-fill" style="width:100%"></div></div></td>
   </tr>
   <tr>
     <td class="mono" style="font-weight:600">VERIFY</td>
     <td><span class="pill p-ok">checkpointed</span></td>
-    <td class="mono">5300 ms</td>
-    <td><div class="bar-track"><div class="bar-fill" style="width:59.304017007944495%"></div></div></td>
+    <td class="mono">5746 ms</td>
+    <td><div class="bar-track"><div class="bar-fill" style="width:45.301166824345636%"></div></div></td>
   </tr>
   <tr>
     <td class="mono" style="font-weight:600">REPORT</td>
     <td><span class="pill p-ok">checkpointed</span></td>
-    <td class="mono">14 ms</td>
-    <td><div class="bar-track"><div class="bar-fill" style="width:0.15665212039834397%"></div></div></td>
+    <td class="mono">16 ms</td>
+    <td><div class="bar-track"><div class="bar-fill" style="width:0.12614317250078838%"></div></div></td>
   </tr>
 </table>
 
 <h2>Every change, cited to the guide</h2>
+<p class="sub" style="margin:-4px 0 14px">Each item below is one breaking change from the migration
+  guide, the files it touched, and the guide's own words justifying it. This is the
+  <strong>trust mechanism</strong> — an edit with no quote behind it is refused and flagged
+  <span class="mono">HUMAN REVIEW</span> rather than applied.</p>
 <table>
-  <tr><th>Item</th><th>Change</th><th>Outcome</th></tr>
+  <tr><th>Item</th><th>Change</th><th>Files</th><th>Guide quote</th></tr>
   <tr>
     <td class="id">EX-01</td>
-    <td class="ttl">app.del() removed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">app.del() removed<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/app.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Express 5 no longer supports the app.del() function. If you use this function, an error is thrown. For registering HTTP DELETE routes, use the app.delete() func...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-02</td>
-    <td class="ttl">res.send(status) removed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">res.send(status) removed<div style="color:var(--dim);font-size:12px;margin-top:3px">2 edits applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/middleware/auth.js<span style="color:var(--dim)"> ×1</span><br>src/routes/auth.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Express 5 no longer supports the signature res.send(status), where status is a number. Instead, use the res.sendStatus(statusCode) function, which sets the HTTP...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-03</td>
-    <td class="ttl">res.send(body, status) removed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">res.send(body, status) removed<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/middleware/errorHandler.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Express 5 no longer supports the signature res.send(obj, status). Instead, set the status and then chain it to the res.send() method like this: res.status(statu...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-04</td>
-    <td class="ttl">res.json(obj, status) removed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">res.json(obj, status) removed<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/routes/items.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Express 5 no longer supports the signature res.json(obj, status). Instead, set the status and then chain it to the res.json() method like this: res.status(statu...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-06</td>
-    <td class="ttl">res.sendfile() removed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">res.sendfile() removed<div style="color:var(--dim);font-size:12px;margin-top:3px">2 edits applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/routes/files.js<span style="color:var(--dim)"> ×1</span><br>src/routes/users.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;The res.sendfile() function has been replaced by a camel-cased version res.sendFile() in Express 5.&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-07</td>
-    <td class="ttl">res.redirect(&#39;back&#39;) and res.location(&#39;back&#39;) removed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">res.redirect(&#39;back&#39;) and res.location(&#39;back&#39;) removed<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/routes/auth.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Express 5 no longer supports the magic string back in the res.redirect() and res.location() methods. Instead, use the req.get(&#39;Referrer&#39;) || &#39;/&#39; value to redire...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-08</td>
-    <td class="ttl">req.param(name) removed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">req.param(name) removed<div style="color:var(--dim);font-size:12px;margin-top:3px">2 edits applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/routes/items.js<span style="color:var(--dim)"> ×1</span><br>src/routes/users.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;This potentially confusing and dangerous method of retrieving form data has been removed. You will now need to specifically look for the submitted parameter nam...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-09</td>
-    <td class="ttl">Singular accepts helpers removed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">Singular accepts helpers removed<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/routes/users.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;The following method names have been pluralized. In Express 4, using the old methods resulted in a deprecation warning. Express 5 no longer supports them at all...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-10</td>
-    <td class="ttl">Path route matching syntax changed</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">Path route matching syntax changed<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/routes/auth.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Path route matching syntax is when a string is supplied as the first parameter to the app.all(), app.use(), app.METHOD(), router.all(), router.METHOD(), and rou...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-11</td>
-    <td class="ttl">Bare * wildcard route no longer valid</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">Bare * wildcard route no longer valid<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/routes/search.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Path route matching syntax is when a string is supplied as the first parameter to the app.all(), app.use(), app.METHOD(), router.all(), router.METHOD(), and rou...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-12</td>
-    <td class="ttl">Regexp characters in route strings are not supported</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">Regexp characters in route strings are not supported<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/app.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Path route matching syntax is when a string is supplied as the first parameter to the app.all(), app.use(), app.METHOD(), router.all(), router.METHOD(), and rou...&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-15</td>
-    <td class="ttl">express.urlencoded() defaults extended to false</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">express.urlencoded() defaults extended to false<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">src/routes/search.js<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;The express.urlencoded method makes the extended option false by default.&rdquo;</td>
   </tr>
   <tr>
     <td class="id">EX-18</td>
-    <td class="ttl">Minimum Node.js version raised</td>
-    <td class="mono" style="color:var(--mut)">—</td>
+    <td class="ttl">Minimum Node.js version raised<div style="color:var(--dim);font-size:12px;margin-top:3px">1 edit applied</div></td>
+    <td class="mono" style="font-size:12.5px;color:var(--mut)">package.json<span style="color:var(--dim)"> ×1</span></td>
+    <td style="font-size:12.5px;color:var(--amb);line-height:1.5">&ldquo;Express 5 requires Node.js version 18 or higher. Update your engines field and any CI configuration to reflect this requirement.&rdquo;</td>
   </tr>
 </table>
-<p class="sub" style="margin-top:12px">Citation coverage is <strong>computed</strong> from the applied-edit records, not asserted. An edit with no guide quote behind it is refused and flagged <span class="mono">HUMAN REVIEW</span> instead.</p>
 
 <h2>Honest accounting</h2>
 <div class="card" style="border-color:#33405c">
@@ -196,7 +212,7 @@
 </div>
 
 <footer>
-  Generated from <span class="mono">01M3DC6D7NKZHWXA0J2P6V9KKK/ledger.json</span> by
+  Generated from <span class="mono">01M3DDCYWD32J5PMQRQ4A952MW/ledger.json</span> by
   <span class="mono">scripts/build-platform.mjs</span> — every figure on this page is read from that run's own
   ledger. No value on this page is hardcoded.<br>
   <a href="https://github.com/BROCKUGANDA/majortom">github.com/BROCKUGANDA/majortom</a> ·
