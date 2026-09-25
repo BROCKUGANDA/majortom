@@ -13,13 +13,7 @@ export const Stage = z.enum([
 ]);
 export type Stage = z.infer<typeof Stage>;
 
-export const StageState = z.enum([
-  "pending",
-  "running",
-  "checkpointed",
-  "failed",
-  "skipped",
-]);
+export const StageState = z.enum(["pending", "running", "checkpointed", "failed", "skipped"]);
 export type StageState = z.infer<typeof StageState>;
 
 export const StageRecord = z.object({
@@ -80,9 +74,7 @@ export const RunLedger = z.object({
     verifyIterations: z.number().int(),
     filesChanged: z.number().int(),
     citationCoverage: z.number().min(0).max(1).nullable(),
-    testDelta: z
-      .object({ before: z.number().int(), after: z.number().int() })
-      .nullable(),
+    testDelta: z.object({ before: z.number().int(), after: z.number().int() }).nullable(),
   }),
 });
 export type RunLedger = z.infer<typeof RunLedger>;

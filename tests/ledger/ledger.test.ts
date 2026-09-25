@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdirSync, rmSync, existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { tmpdir } from "os";
+import { SANDBOX_ROOT } from "../helpers/sandbox.js";
 import {
   createRun,
   startStage,
@@ -22,9 +22,23 @@ import { STAGE_ORDER } from "../../src/core/schemas.js";
 
 // ─── test helpers ───────────────────────────────────────────────────────────
 
+afterEach(() => {
+  if (current && existsSync(current)) {
+    rmSync(current, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+  }
+  current = "";
+});
+
+// Vitest runs test FILES in parallel, so teardown removes ONLY this file's sandbox
+// directory. Wiping the shared root would delete a sibling file's in-flight fixtures.
+let current = "";
+
 function tmpRepo(): string {
-  const dir = join(tmpdir(), `majortom-test-${Date.now()}-${Math.random().toString(36).slice(2)}`);
+  // In-repo sandbox, not os.tmpdir() — see tests/helpers/sandbox.ts for why.
+  mkdirSync(SANDBOX_ROOT, { recursive: true });
+  const dir = join(SANDBOX_ROOT, `ledger-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   mkdirSync(dir, { recursive: true });
+  current = dir;
   return dir;
 }
 

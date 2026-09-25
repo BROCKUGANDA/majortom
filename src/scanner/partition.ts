@@ -10,10 +10,7 @@ import { ulid } from "ulid";
  * greedy least-loaded assignment into buckets.
  * Deterministic: same input → same queues.
  */
-export function partition(
-  entries: WorkMapEntry[],
-  maxQueues: number
-): WorkMapQueue[] {
+export function partition(entries: WorkMapEntry[], maxQueues: number): WorkMapQueue[] {
   if (entries.length === 0) return [];
 
   // Only include entries with at least one unsuppressed hit

@@ -18,10 +18,7 @@ export type ErrorCode =
   | "E_GITHUB_API"
   | "E_RUN_TIMEOUT";
 
-const ALWAYS_FATAL: ReadonlySet<ErrorCode> = new Set([
-  "E_SCOPE_VIOLATION",
-  "E_PROTECTED_BRANCH",
-]);
+const ALWAYS_FATAL: ReadonlySet<ErrorCode> = new Set(["E_SCOPE_VIOLATION", "E_PROTECTED_BRANCH"]);
 
 const RETRYABLE: ReadonlySet<ErrorCode> = new Set([
   "E_INSTALL_FAILED",

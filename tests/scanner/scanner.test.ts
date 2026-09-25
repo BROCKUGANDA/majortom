@@ -33,9 +33,9 @@ function loadCannedPlan(): CannedPlan {
 describe("impactScan — breakage coverage", () => {
   it("covers every seeded breakage in BREAKAGES.json", async () => {
     const plan = loadCannedPlan();
-    const breakages = JSON.parse(
-      readFileSync(join(FIXTURE_ROOT, "BREAKAGES.json"), "utf8")
-    ) as { entries: Array<{ planItemRef: string }> };
+    const breakages = JSON.parse(readFileSync(join(FIXTURE_ROOT, "BREAKAGES.json"), "utf8")) as {
+      entries: Array<{ planItemRef: string }>;
+    };
 
     const result = await impactScan(FIXTURE_ROOT, plan.items);
 
@@ -47,16 +47,16 @@ describe("impactScan — breakage coverage", () => {
     const seededRefs = new Set(breakages.entries.map((b) => b.planItemRef));
 
     for (const ref of seededRefs) {
-      // EX-NO-MATCH is deliberately unmatched
-      if (ref === "EX-NO-MATCH") continue;
+      // EX-99 is deliberately unmatched
+      if (ref === "EX-99") continue;
       expect(matchedItems.has(ref), `Plan item ${ref} should have matches`).toBe(true);
     }
   });
 
-  it("EX-NO-MATCH plan item with zero call sites lands in unmatchedItemIds", async () => {
+  it("EX-99 plan item with zero call sites lands in unmatchedItemIds", async () => {
     const plan = loadCannedPlan();
     const result = await impactScan(FIXTURE_ROOT, plan.items);
-    expect(result.unmatchedItemIds).toContain("EX-NO-MATCH");
+    expect(result.unmatchedItemIds).toContain("EX-99");
   });
 });
 
@@ -134,7 +134,8 @@ describe("partition — disjoint queues", () => {
     const q2 = partition(result2.entries, 3).map((q) => [...q.files].sort());
 
     // Sort queues by their first file for comparison
-    const sortQueues = (qs: typeof q1) => [...qs].sort((a, b) => (a[0] ?? "").localeCompare(b[0] ?? ""));
+    const sortQueues = (qs: typeof q1) =>
+      [...qs].sort((a, b) => (a[0] ?? "").localeCompare(b[0] ?? ""));
     expect(sortQueues(q1)).toEqual(sortQueues(q2));
   });
 
