@@ -1,0 +1,25 @@
+{
+  "name": "express4-fixture",
+  "version": "1.0.0",
+  "description": "Golden fixture Express 4 app for MajorTom testing",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=14"
+  },
+  "scripts": {
+    "start": "node src/app.js",
+    "test": "vitest run --config vitest.config.js"
+  },
+  "allowScripts": {
+    "express": true,
+    "supertest": true,
+    "vitest": true
+  },
+  "dependencies": {
+    "express": "4.21.2"
+  },
+  "devDependencies": {
+    "supertest": "7.0.0",
+    "vitest": "2.1.9"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "entries": [
+    {
+      "id": "EX-01",
+      "description": "app.del() removed in Express 5",
+      "locations": [{ "file": "src/app.js", "line": 27 }],
+      "expectedExpress5Behavior": "TypeError: app.del is not a function",
+      "planItemRef": "EX-01",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-02a",
+      "description": "res.send(401) - res.send(status) removed in Express 5",
+      "locations": [{ "file": "src/middleware/auth.js", "line": 8 }],
+      "expectedExpress5Behavior": "TypeError or wrong response",
+      "planItemRef": "EX-02",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-02b",
+      "description": "res.send(403) - res.send(status) removed in Express 5",
+      "locations": [{ "file": "src/middleware/auth.js", "line": 17 }],
+      "expectedExpress5Behavior": "TypeError or wrong response",
+      "planItemRef": "EX-02",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-03",
+      "description": "res.send(body, status) removed in Express 5",
+      "locations": [{ "file": "src/middleware/errorHandler.js", "line": 11 }],
+      "expectedExpress5Behavior": "TypeError: res.send does not support two arguments",
+      "planItemRef": "EX-03",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-04",
+      "description": "res.json(obj, status) removed in Express 5",
+      "locations": [{ "file": "src/routes/items.js", "line": 12 }],
+      "expectedExpress5Behavior": "TypeError or ignored second argument",
+      "planItemRef": "EX-04",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-06a",
+      "description": "res.sendfile() removed in Express 5 (users route)",
+      "locations": [{ "file": "src/routes/users.js", "line": 24 }],
+      "expectedExpress5Behavior": "TypeError: res.sendfile is not a function",
+      "planItemRef": "EX-06",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-06b",
+      "description": "res.sendfile() removed in Express 5 (files route)",
+      "locations": [{ "file": "src/routes/files.js", "line": 11 }],
+      "expectedExpress5Behavior": "TypeError: res.sendfile is not a function",
+      "planItemRef": "EX-06",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-07",
+      "description": "res.redirect('back') removed in Express 5",
+      "locations": [{ "file": "src/routes/auth.js", "line": 9 }],
+      "expectedExpress5Behavior": "TypeError: res.redirect('back') is not supported",
+      "planItemRef": "EX-07",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-08a",
+      "description": "req.param(name) removed in Express 5 (items route)",
+      "locations": [{ "file": "src/routes/items.js", "line": 18 }],
+      "expectedExpress5Behavior": "TypeError: req.param is not a function",
+      "planItemRef": "EX-08",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-08b",
+      "description": "req.param(name) removed in Express 5 (users route)",
+      "locations": [{ "file": "src/routes/users.js", "line": 8 }],
+      "expectedExpress5Behavior": "TypeError: req.param is not a function",
+      "planItemRef": "EX-08",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-09a",
+      "description": "req.acceptsCharset() singular removed in Express 5",
+      "locations": [{ "file": "src/routes/users.js", "line": 14 }],
+      "expectedExpress5Behavior": "TypeError: req.acceptsCharset is not a function",
+      "planItemRef": "EX-09",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-10",
+      "description": "Optional route param :format? not valid in Express 5",
+      "locations": [{ "file": "src/routes/auth.js", "line": 18 }],
+      "expectedExpress5Behavior": "Route not matched or throws on startup",
+      "planItemRef": "EX-10",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-11",
+      "description": "Bare * wildcard route not valid in Express 5",
+      "locations": [{ "file": "src/routes/search.js", "line": 21 }],
+      "expectedExpress5Behavior": "Route throws on startup or not matched",
+      "planItemRef": "EX-11",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-12",
+      "description": "Regex-ish route string not supported in Express 5",
+      "locations": [{ "file": "src/app.js", "line": 33 }],
+      "expectedExpress5Behavior": "TypeError on app startup",
+      "planItemRef": "EX-12",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-15",
+      "description": "express.urlencoded() without extended option — default changed in Express 5",
+      "locations": [{ "file": "src/routes/search.js", "line": 24 }],
+      "expectedExpress5Behavior": "extended defaults to false instead of true",
+      "planItemRef": "EX-15",
+      "detectableStatically": true
+    },
+    {
+      "id": "EX-18",
+      "description": "Minimum Node version raised to 18 for Express 5",
+      "locations": [{ "file": "package.json", "line": 7 }],
+      "expectedExpress5Behavior": "Install fails on Node < 18",
+      "planItemRef": "EX-18",
+      "detectableStatically": true
+    }
+  ]
+}

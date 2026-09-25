@@ -1,0 +1,14 @@
+{
+  "limits": {
+    "maxQueues": 3,
+    "maxEditAttemptsPerFile": 5,
+    "maxVerifyIterations": 3,
+    "maxGuidePages": 60,
+    "maxFilesScanned": 5000,
+    "runTimeoutMs": 2700000
+  },
+  "testRunner": { "detect": ["vitest", "jest"], "command": null, "timeoutMs": 600000 },
+  "packageManager": { "allowed": ["npm", "pnpm"], "installArgs": ["install", "--ignore-scripts"] },
+  "git": { "branchPrefix": "majortom/", "protectedBranches": ["main", "master"] },
+  "report": { "minCitationCoverage": 1.0 }
+}

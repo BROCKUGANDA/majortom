@@ -1,0 +1,7 @@
+.majortom/
+node_modules/
+dist/
+coverage/
+*.tgz
+.env
+.env.*

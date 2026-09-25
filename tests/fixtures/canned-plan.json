@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 1,
+  "planId": "canned-plan-express4to5",
+  "dependency": { "name": "express", "from": "4.21.2", "to": "5.0.0" },
+  "sources": [
+    {
+      "docId": "guides/express5.md",
+      "kind": "markdown",
+      "sha256": "deadbeef",
+      "title": "Upgrade to Express v5"
+    }
+  ],
+  "items": [
+    {
+      "id": "EX-01",
+      "title": "app.del() removed",
+      "summary": "Express 5 no longer supports the app.del() function. Use app.delete() instead.",
+      "kind": "removal",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["\\.del\\s*\\("],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "codemod",
+        "instruction": "Replace app.del(path, handler) with app.delete(path, handler) throughout the file.",
+        "example": { "before": "app.del('/items', handler)", "after": "app.delete('/items', handler)" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "app.del()",
+        "locator": "#appdel",
+        "quote": "Express 5 no longer supports the app.del() function. If you use this function, an error is thrown. For registering HTTP DELETE routes, use the app.delete() function instead."
+      },
+      "testExpectation": null,
+      "confidence": 0.95,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-02",
+      "title": "res.send(status) removed",
+      "summary": "Express 5 no longer supports res.send(statusCode) where status is a number. Use res.sendStatus(code) instead.",
+      "kind": "removal",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["res\\.send\\(\\s*\\d{3}\\s*\\)"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "codemod",
+        "instruction": "Replace res.send(statusCode) with res.sendStatus(statusCode).",
+        "example": { "before": "res.send(404)", "after": "res.sendStatus(404)" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "res.send(status)",
+        "locator": "#ressendstatus",
+        "quote": "Express 5 no longer supports the signature res.send(status), where status is a number. Instead, use the res.sendStatus(statusCode) function"
+      },
+      "testExpectation": null,
+      "confidence": 0.95,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-03",
+      "title": "res.send(body, status) removed",
+      "summary": "Express 5 no longer supports res.send(obj, status). Use res.status(code).send(body) instead.",
+      "kind": "removal",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["res\\.send\\([^)]+,\\s*\\d{3}\\s*\\)", "res\\.send\\([^)]+,\\s*\\w+\\s*\\)"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "codemod",
+        "instruction": "Replace res.send(body, status) with res.status(status).send(body).",
+        "example": { "before": "res.send(body, 200)", "after": "res.status(200).send(body)" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "res.send(body, status)",
+        "locator": "#ressendbody-status",
+        "quote": "Express 5 no longer supports the signature res.send(obj, status). Instead, set the status and then chain it to the res.send() method like this: res.status(status).send(obj)."
+      },
+      "testExpectation": null,
+      "confidence": 0.9,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-04",
+      "title": "res.json(obj, status) removed",
+      "summary": "Express 5 no longer supports res.json(obj, status). Use res.status(code).json(obj) instead.",
+      "kind": "removal",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["res\\.json\\([^)]+,\\s*\\d{3}\\s*\\)"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "codemod",
+        "instruction": "Replace res.json(obj, status) with res.status(status).json(obj).",
+        "example": { "before": "res.json(data, 201)", "after": "res.status(201).json(data)" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "res.json(obj, status)",
+        "locator": "#resjsonobj-status",
+        "quote": "Express 5 no longer supports the signature res.json(obj, status). Instead, set the status and then chain it to the res.json() method like this: res.status(status).json(obj)."
+      },
+      "testExpectation": null,
+      "confidence": 0.9,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-06",
+      "title": "res.sendfile() removed",
+      "summary": "Express 5 replaced res.sendfile() with the camel-cased res.sendFile().",
+      "kind": "rename",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["res\\.sendfile\\s*\\("],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "codemod",
+        "instruction": "Replace res.sendfile(path) with res.sendFile(path).",
+        "example": { "before": "res.sendfile('/path/to/file')", "after": "res.sendFile('/path/to/file')" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "res.sendfile()",
+        "locator": "#ressendfile",
+        "quote": "The res.sendfile() function has been replaced by a camel-cased version res.sendFile() in Express 5."
+      },
+      "testExpectation": null,
+      "confidence": 0.98,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-07",
+      "title": "res.redirect('back') removed",
+      "summary": "Express 5 removed the magic string 'back' in res.redirect() and res.location(). Use req.get('Referrer') || '/' instead.",
+      "kind": "removal",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["redirect\\(\\s*['\"]back['\"]"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "guided-edit",
+        "instruction": "Replace res.redirect('back') with res.redirect(req.get('Referrer') || '/'). Replace res.location('back') with res.location(req.get('Referrer') || '/').",
+        "example": { "before": "res.redirect('back')", "after": "res.redirect(req.get('Referrer') || '/')" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "res.redirect('back') and res.location('back')",
+        "locator": "#resredirectback-and-reslocationback",
+        "quote": "Express 5 no longer supports the magic string back in the res.redirect() and res.location() methods. Instead, use the req.get('Referrer') || '/' value to redirect back to the previous page."
+      },
+      "testExpectation": null,
+      "confidence": 0.95,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-08",
+      "title": "req.param(name) removed",
+      "summary": "Express 5 removed req.param(name). Use req.params, req.body, or req.query instead.",
+      "kind": "removal",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["req\\.param\\s*\\("],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "guided-edit",
+        "instruction": "Replace req.param('name') with req.params.name, req.body.name, or req.query.name as appropriate for the context.",
+        "example": { "before": "const id = req.param('id')", "after": "const id = req.params.id" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "req.param(name)",
+        "locator": "#reqparamname",
+        "quote": "This potentially confusing and dangerous method of retrieving form data has been removed. You will now need to specifically look for the submitted parameter name in the req.params, req.body, or req.query object."
+      },
+      "testExpectation": null,
+      "confidence": 0.95,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-09",
+      "title": "Singular accepts helpers removed",
+      "summary": "req.acceptsCharset(), req.acceptsEncoding(), req.acceptsLanguage() removed. Use pluralized forms.",
+      "kind": "rename",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["acceptsCharset\\(", "acceptsEncoding\\(", "acceptsLanguage\\("],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "codemod",
+        "instruction": "Replace req.acceptsCharset() with req.acceptsCharsets(), req.acceptsEncoding() with req.acceptsEncodings(), req.acceptsLanguage() with req.acceptsLanguages().",
+        "example": { "before": "req.acceptsCharset('utf-8')", "after": "req.acceptsCharsets('utf-8')" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "Pluralized method names",
+        "locator": "#pluralized-method-names",
+        "quote": "req.acceptsCharset() is replaced by req.acceptsCharsets(). req.acceptsEncoding() is replaced by req.acceptsEncodings(). req.acceptsLanguage() is replaced by req.acceptsLanguages()."
+      },
+      "testExpectation": null,
+      "confidence": 0.95,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-10",
+      "title": "Optional route params :id? not valid",
+      "summary": "Express 5 does not support optional route params using '?'. Use brace form instead.",
+      "kind": "routing-syntax",
+      "severity": "breaking",
+      "detect": {
+        "regex": [":\\w+\\?"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "guided-edit",
+        "instruction": "Replace /:param? with /:param{.:ext} or equivalent brace form per path-to-regexp v8.",
+        "example": { "before": "/:file.:ext?", "after": "/:file{.:ext}" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "Path route matching syntax",
+        "locator": "#path-route-matching-syntax",
+        "quote": "The optional character ? is no longer supported, use braces instead."
+      },
+      "testExpectation": null,
+      "confidence": 0.85,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-11",
+      "title": "Bare * wildcard route not valid",
+      "summary": "Express 5 requires named wildcards. Replace /* with /*splat.",
+      "kind": "routing-syntax",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["/\\*[^a-zA-Z]", "/\\*$"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "codemod",
+        "instruction": "Replace bare /* wildcard with /*splat (or another named wildcard).",
+        "example": { "before": "router.get('/*', handler)", "after": "router.get('/*splat', handler)" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "Path route matching syntax",
+        "locator": "#path-route-matching-syntax",
+        "quote": "The wildcard * must have a name, matching the behavior of parameters :, use /*splat instead of /*"
+      },
+      "testExpectation": null,
+      "confidence": 0.9,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-12",
+      "title": "Regex-ish route strings not supported",
+      "summary": "Express 5 does not support regex characters in route strings. Use explicit RegExp or named params.",
+      "kind": "routing-syntax",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["['\"][^'\"]*[(+[][^'\"]*['\"]", "['\"][^'\"]*\\?[^'\"]*['\"]"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "guided-edit",
+        "instruction": "Replace regex-like route string patterns with an array of explicit paths or with named params.",
+        "example": { "before": "app.get('/[v1|v2]/status', h)", "after": "app.get(['/v1/status', '/v2/status'], h)" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "Path route matching syntax",
+        "locator": "#path-route-matching-syntax",
+        "quote": "Regexp characters are not supported."
+      },
+      "testExpectation": null,
+      "confidence": 0.75,
+      "requiresHumanReview": true
+    },
+    {
+      "id": "EX-15",
+      "title": "express.urlencoded() default for extended changed",
+      "summary": "Express 5 defaults extended to false in urlencoded(). Pass explicitly if you need true.",
+      "kind": "behavioral",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["urlencoded\\(\\s*\\)"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "guided-edit",
+        "instruction": "Add extended: true or extended: false explicitly to express.urlencoded().",
+        "example": { "before": "app.use(express.urlencoded())", "after": "app.use(express.urlencoded({ extended: true }))" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "express.urlencoded",
+        "locator": "#expressurlencoded",
+        "quote": "The express.urlencoded method makes the extended option false by default."
+      },
+      "testExpectation": null,
+      "confidence": 0.8,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-18",
+      "title": "Minimum Node.js version raised to 18",
+      "summary": "Express 5 requires Node.js 18 or higher. The engines field and any CI node version must be bumped.",
+      "kind": "runtime-requirement",
+      "severity": "breaking",
+      "detect": {
+        "regex": ["\"engines\"", "\"node\"\\s*:\\s*\"[^\"]*\""],
+        "astQuery": null,
+        "filesGlob": ["package.json"]
+      },
+      "fix": {
+        "strategy": "codemod",
+        "instruction": "Set the engines.node range in package.json to >=18 so it satisfies the Express 5 minimum runtime.",
+        "example": { "before": "\"node\": \">=14\"", "after": "\"node\": \">=18\"" }
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "Minimum Node.js version",
+        "locator": "#minimum-nodejs-version",
+        "quote": "Express 5 requires Node.js version 18 or higher."
+      },
+      "testExpectation": "None: the engines field does not affect test outcomes.",
+      "confidence": 0.95,
+      "requiresHumanReview": false
+    },
+    {
+      "id": "EX-NO-MATCH",
+      "title": "This item has no call sites in the fixture",
+      "summary": "A deliberately unmatched item to test that unmatchedItemIds is populated correctly.",
+      "kind": "removal",
+      "severity": "advisory",
+      "detect": {
+        "regex": ["MAJORTOM_PHANTOM_PATTERN_THAT_NEVER_MATCHES_XYZ123"],
+        "astQuery": null,
+        "filesGlob": ["**/*.{ts,js,mjs,cjs}"]
+      },
+      "fix": {
+        "strategy": "manual-only",
+        "instruction": "This pattern should never appear in real code. If found, review manually.",
+        "example": null
+      },
+      "citation": {
+        "docId": "guides/express5.md",
+        "sectionTitle": "app.del()",
+        "locator": "#appdel",
+        "quote": "Express 5 no longer supports the app.del() function. If you use this function, an error is thrown."
+      },
+      "testExpectation": null,
+      "confidence": 0.5,
+      "requiresHumanReview": true
+    }
+  ],
+  "warnings": [],
+  "generatedAt": "2026-01-01T00:00:00.000Z"
+}
