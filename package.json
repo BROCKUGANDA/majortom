@@ -46,12 +46,12 @@
     "@typescript-eslint/eslint-plugin": "8.21.0",
     "@typescript-eslint/parser": "8.21.0",
     "eslint": "9.18.0",
-    "express": "4.21.2",
+    "express": "4.22.3",
     "globals": "^15.14.0",
     "prettier": "3.4.2",
     "supertest": "7.0.0",
     "typescript": "5.7.3",
-    "vitest": "2.1.9"
+    "vitest": "3.2.6"
   },
   "license": "MIT",
   "repository": {
